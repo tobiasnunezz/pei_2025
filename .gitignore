@@ -1,0 +1,31 @@
+# Entorno virtual
+venv/
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de bases de datos temporales
+*.sqlite3
+
+# Archivos de configuración o secretos (si los usás)
+.env
+*.env
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de logs
+*.log
+
+# Archivos generados por editor
+*.swp
+*.swo
+
+# Archivos temporales de Django
+staticfiles/
+media/
+

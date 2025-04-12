@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold text-center mb-4">Gestión del Tablero (Administrador)</h2>
+
+    <style>
+        .nivel-bajo {
+            background-color: #ff6b6b !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .nivel-medio {
+            background-color: #ffe066 !important;
+            font-weight: bold;
+        }
+        .nivel-alto {
+            background-color: #51cf66 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        th, td {
+            vertical-align: middle !important;
+            font-size: 0.9rem;
+        }
+        .text-left {
+            text-align: left !important;
+        }
+        .eje-bg {
+            background-color: #e7f1ff !important;
+            font-weight: bold;
+        }
+    </style>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>N°</th>
+                    <th>Eje Estratégico</th>
+                    <th>Objetivo Estratégico</th>
+                    <th class="text-left">Indicador</th>
+                    <th>Meta 2025</th>
+                    <th>Avance</th>
+                    <th>Nivel</th>
+                    <th>Acción</th>
+                    <th>Responsable</th>
+                    <th>Editar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% regroup tableros by eje_estrategico as ejes %}
+                {% with 0 as row_counter %}
+                {% for eje in ejes %}
+                    {% regroup eje.list by objetivo_estrategico as objetivos %}
+                    {% with total_eje=eje.list|length %}
+                    {% for obj in objetivos %}
+                        {% with total_obj=obj.list|length %}
+                        {% for t in obj.list %}
+                        {% with forloop.parentloop.parentloop.counter0|add:forloop.counter0 as row_number %}
+                        <tr>
+                            <td>{{ row_number|add:"1" }}</td>
+
+                            {% if forloop.first and forloop.parentloop.first %}
+                                <td rowspan="{{ total_eje }}" class="eje-bg">{{ t.eje_estrategico }}</td>
+                            {% endif %}
+
+                            {% if forloop.first %}
+                                <td rowspan="{{ total_obj }}">{{ t.objetivo_estrategico }}</td>
+                            {% endif %}
+
+                            <td class="text-left">{{ forloop.counter }}. {{ t.indicador }}</td>
+                            <td>{{ t.meta_2025 }}</td>
+                            <td>{{ t.avance }}</td>
+                            <td class="{% if t.nivel == 'Bajo' %}nivel-bajo
+                                       {% elif t.nivel == 'Medio' %}nivel-medio
+                                       {% elif t.nivel == 'Alto' %}nivel-alto
+                                       {% endif %}">
+                                {{ t.nivel }}
+                            </td>
+                            <td>{{ t.accion }}</td>
+                            <td>{{ t.responsable }}</td>
+                            <td>
+                                <a href="{% url 'editar_avance' t.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                        {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                {% endfor %}
+                {% endwith %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

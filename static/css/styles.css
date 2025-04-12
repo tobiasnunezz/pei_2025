@@ -1,0 +1,99 @@
+/* General */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Header */
+header {
+    background-color: #00ff6a;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* Content Area */
+.content {
+    padding: 20px;
+}
+
+/* Card */
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+/* Tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #007bff;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+/* Footer */
+footer {
+    background-color: #2f2f2f;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    margin-top: 30px;
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .content {
+        padding: 10px;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .table th, .table td {
+        padding: 8px;
+    }
+}

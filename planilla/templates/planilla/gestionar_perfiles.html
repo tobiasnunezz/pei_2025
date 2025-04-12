@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Gestión de Perfiles de Usuario</h2>
+
+    <table class="table table-bordered table-hover table-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Usuario</th>
+                <th>Responsable</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for perfil, form in forms_por_perfil %}
+            <tr>
+                <form method="post">
+                    {% csrf_token %}
+                    <td>{{ form.user }}</td>
+                    <td>{{ form.responsable }}</td>
+                    <td>
+                        <input type="hidden" name="perfil_id" value="{{ perfil.id }}">
+                        <button type="submit" class="btn btn-sm btn-success">Guardar</button>
+                    </td>
+                </form>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No hay perfiles disponibles.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'lista_tablero' %}" class="btn btn-secondary">← Volver al Tablero</a>
+</div>
+{% endblock %}
