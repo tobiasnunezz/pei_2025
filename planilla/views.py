@@ -14,15 +14,19 @@ ORDEN_EJES = [
     "Desarrollo Institucional y del Talento Humano",
 ]
 
-#@login_required
-def lista_tablero(request):
+    #@login_required
+    # @login_required  # Desactivado temporalmente
+    def lista_tablero(request):
     usuario = request.user
 
-    if usuario.is_staff or usuario.is_superuser:
+    if not usuario.is_authenticated:
+        tableros = list(Tablero.objects.all())  # Modo público para pruebas
+    elif usuario.is_staff or usuario.is_superuser:
         tableros = list(Tablero.objects.all())
     else:
         responsable = usuario.perfilusuario.responsable
         tableros = list(Tablero.objects.filter(responsable=responsable))
+
 
     # Agrupamiento por eje y objetivo
     agrupado = defaultdict(lambda: defaultdict(list))
@@ -42,7 +46,7 @@ def lista_tablero(request):
         'es_admin': usuario.is_staff or usuario.is_superuser
     })
 
-@login_required
+#@login_required
 def editar_avance(request, id):
     tablero = get_object_or_404(Tablero, id=id)
 
