@@ -2,22 +2,75 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Tablero, PerfilUsuario
 
+CUANTITATIVOS = [
+    ("", "---------"),
+    ("0", "0%"),
+    ("1", "1 – 24%"),
+    ("25", "25 – 49%"),
+    ("50", "50 – 74%"),
+    ("75", "75 – 89%"),
+    ("90", ">= 90%"),
+]
 
-# Formulario para editar solo el avance (usuarios normales)
+CUALITATIVOS = [
+    ("No Iniciado", "No Iniciado"),
+    ("En proceso", "En proceso"),
+    ("Presentado", "Aprobado/Presentado-a"),
+]
+
+AVANCE_CHOICES = CUANTITATIVOS + CUALITATIVOS
+
+# ✏️ Formulario para usuarios comunes
 class AvanceForm(forms.ModelForm):
+    avance = forms.ChoiceField(
+        choices=AVANCE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
+    )
+
     class Meta:
         model = Tablero
         fields = ['avance']
-        widgets = {
-            'avance': forms.NumberInput(attrs={
-                'step': '0.01',
-                'min': '0',
-                'class': 'form-control'
-            })
-        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        avance = cleaned_data.get('avance')
+
+        # Asignación automática de nivel y acción
+        if avance is not None:
+            tablero = self.instance
+
+            if avance == "0":
+                tablero.nivel = "No existe avance"
+                tablero.accion = "Correctiva"
+            elif avance == "1":
+                tablero.nivel = "Bajo"
+                tablero.accion = "Correctiva"
+            elif avance == "25":
+                tablero.nivel = "Aceptable"
+                tablero.accion = "Preventiva"
+            elif avance == "50":
+                tablero.nivel = "Medio"
+                tablero.accion = "Preventiva"
+            elif avance == "75":
+                tablero.nivel = "Satisfactorio"
+                tablero.accion = "Analizar tendencias"
+            elif avance == "90":
+                tablero.nivel = "Óptimo"
+                tablero.accion = "Analizar tendencias"
+            elif avance == "No Iniciado":
+                tablero.nivel = "No existe avance"
+                tablero.accion = "Correctiva"
+            elif avance == "En proceso":
+                tablero.nivel = "Medio"
+                tablero.accion = "Preventiva"
+            elif avance in ["Aprobado", "Presentado", "Aprobado/Presentado-a"]:
+                tablero.nivel = "Óptimo"
+                tablero.accion = "Analizar tendencias"
+
+        return cleaned_data
 
 
-# Formulario para editar el perfil del usuario (staff)
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = PerfilUsuario
@@ -28,7 +81,6 @@ class PerfilUsuarioForm(forms.ModelForm):
         }
 
 
-# Formulario para crear usuario + perfil juntos (staff)
 class CrearUsuarioForm(forms.ModelForm):
     responsable = forms.CharField(
         max_length=100,
@@ -55,7 +107,6 @@ class CrearUsuarioForm(forms.ModelForm):
         return user
 
 
-# Formulario completo de edición del tablero (solo admin)
 class TableroCompletoForm(forms.ModelForm):
     class Meta:
         model = Tablero
@@ -65,8 +116,9 @@ class TableroCompletoForm(forms.ModelForm):
             'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
-            'avance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'avance': forms.TextInput(attrs={'class': 'form-control'}),
             'nivel': forms.TextInput(attrs={'class': 'form-control'}),
             'accion': forms.TextInput(attrs={'class': 'form-control'}),
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control'}),
         }
