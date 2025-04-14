@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Tablero, PerfilUsuario
 
+# Opciones de avance
 CUANTITATIVOS = [
     ("", "---------"),
     ("0", "0%"),
@@ -36,10 +37,8 @@ class AvanceForm(forms.ModelForm):
         cleaned_data = super().clean()
         avance = cleaned_data.get('avance')
 
-        # Asignación automática de nivel y acción
         if avance is not None:
             tablero = self.instance
-
             if avance == "0":
                 tablero.nivel = "No existe avance"
                 tablero.accion = "Correctiva"
@@ -71,6 +70,30 @@ class AvanceForm(forms.ModelForm):
         return cleaned_data
 
 
+# 🧑‍💼 Formulario para el admin con todos los campos
+class TableroCompletoForm(forms.ModelForm):
+    avance = forms.ChoiceField(
+        choices=AVANCE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=False
+    )
+
+    class Meta:
+        model = Tablero
+        fields = '__all__'
+        widgets = {
+            'eje_estrategico': forms.TextInput(attrs={'class': 'form-control'}),
+            'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
+            'nivel': forms.TextInput(attrs={'class': 'form-control'}),
+            'accion': forms.TextInput(attrs={'class': 'form-control'}),
+            'responsable': forms.TextInput(attrs={'class': 'form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+# 👤 Formulario para modificar responsable del perfil de usuario
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = PerfilUsuario
@@ -81,6 +104,7 @@ class PerfilUsuarioForm(forms.ModelForm):
         }
 
 
+# 🆕 Crear nuevo usuario + perfil (staff)
 class CrearUsuarioForm(forms.ModelForm):
     responsable = forms.CharField(
         max_length=100,
@@ -105,20 +129,3 @@ class CrearUsuarioForm(forms.ModelForm):
                 responsable=self.cleaned_data['responsable']
             )
         return user
-
-
-class TableroCompletoForm(forms.ModelForm):
-    class Meta:
-        model = Tablero
-        fields = '__all__'
-        widgets = {
-            'eje_estrategico': forms.TextInput(attrs={'class': 'form-control'}),
-            'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
-            'avance': forms.TextInput(attrs={'class': 'form-control'}),
-            'nivel': forms.TextInput(attrs={'class': 'form-control'}),
-            'accion': forms.TextInput(attrs={'class': 'form-control'}),
-            'responsable': forms.TextInput(attrs={'class': 'form-control'}),
-            'orden': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
