@@ -1,55 +1,13 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<h2 style="margin-top: 20px;">📊 Tablero de Control</h2>
-
-<style>
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    margin-bottom: 40px;
-  }
-  th, td {
-    border: 1px solid #000;
-    padding: 6px 8px;
-    text-align: center;
-    vertical-align: middle;
-  }
-  th {
-    background-color: #e6e6e6;
-    font-weight: bold;
-  }
-  .eje-header {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-    padding: 6px;
-    text-align: left;
-  }
-  .nivel-bajo {
-    background-color: #f87171; /* rojo */
-    color: white;
-    font-weight: bold;
-  }
-  .nivel-medio {
-    background-color: #facc15; /* amarillo */
-    color: #000;
-    font-weight: bold;
-  }
-  .nivel-alto {
-    background-color: #4ade80; /* verde */
-    color: #000;
-    font-weight: bold;
-  }
-</style>
-
-{% if agrupado %}
-  {% for eje, objetivos in agrupado.items %}
-    <div class="eje-header">{{ eje }}</div>
-    <table>
-      <thead>
+<div class="container mt-4">
+  <h2 class="mb-4">📊 Tablero de Control</h2>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-primary">
         <tr>
-          <th>N°</th>
+          <th style="width: 40px;">N°</th>
+          <th>Eje Estratégico</th>
           <th>Objetivo Estratégico</th>
           <th>Indicador</th>
           <th>Meta 2025</th>
@@ -61,35 +19,46 @@
         </tr>
       </thead>
       <tbody>
-        {% with 1 as contador %}
-        {% for objetivo, indicadores in objetivos.items %}
-          {% for t in indicadores %}
+        {% for eje, objetivos in agrupado.items %}
+          {% with contador=forloop.counter %}
+            {% for objetivo, items in objetivos.items %}
+              {% for item in items %}
+              <tr>
+                {% if forloop.first %}
+                  <td rowspan="{{ items|length }}">{{ forloop.parentloop.parentloop.counter }}</td>
+                  <td rowspan="{{ items|length }}"><strong>{{ eje }}</strong></td>
+                  <td rowspan="{{ items|length }}" class="fw-bold bg-light">{{ objetivo }}</td>
+                {% endif %}
+                <td>{{ item.indicador|default_if_none:"" }}</td>
+                <td>{{ item.meta_2025|default_if_none:"" }}</td>
+                <td>{{ item.avance|default_if_none:"" }}</td>
+                <td>
+                  {% if item.nivel == "Bajo" %}
+                    <span class="badge bg-danger">Bajo</span>
+                  {% elif item.nivel == "Medio" %}
+                    <span class="badge bg-warning text-dark">Medio</span>
+                  {% elif item.nivel == "Alto" %}
+                    <span class="badge bg-success">Alto</span>
+                  {% else %}
+                    <!-- vacío -->
+                  {% endif %}
+                </td>
+                <td>{{ item.accion|default_if_none:"" }}</td>
+                <td>{{ item.responsable|default_if_none:"" }}</td>
+                <td>
+                  <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% endfor %}
+          {% endwith %}
+        {% empty %}
           <tr>
-            {% if forloop.first %}
-              <td rowspan="{{ indicadores|length }}">{{ forloop.parentloop.counter }}</td>
-              <td rowspan="{{ indicadores|length }}">{{ objetivo }}</td>
-            {% endif %}
-            <td>{{ t.indicador }}</td>
-            <td>{{ t.meta_2025|default_if_none:"" }}</td>
-            <td>
-              {% if t.avance and not t.avance|stringformat:"s"|lower == "nan" %}
-                {{ t.avance }}
-              {% endif %}
-            </td>
-            <td class="{% if t.nivel == "Bajo" %}nivel-bajo{% elif t.nivel == "Medio" %}nivel-medio{% elif t.nivel == "Alto" %}nivel-alto{% endif %}">
-              {{ t.nivel|default_if_none:"" }}
-            </td>
-            <td>{{ t.accion|default_if_none:"" }}</td>
-            <td>{{ t.responsable|default_if_none:"" }}</td>
-            <td><a href="{% url 'editar_avance' t.id %}">Editar</a></td>
+            <td colspan="10">No hay datos disponibles.</td>
           </tr>
-          {% endfor %}
         {% endfor %}
-        {% endwith %}
       </tbody>
     </table>
-  {% endfor %}
-{% else %}
-  <p>No hay datos disponibles.</p>
-{% endif %}
+  </div>
+</div>
 {% endblock %}
