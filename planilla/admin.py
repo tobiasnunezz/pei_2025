@@ -1,4 +1,5 @@
 from django.contrib import admin
+from adminsortable2.admin import SortableAdminMixin
 from .models import Tablero, PerfilUsuario
 
 @admin.register(Tablero)
@@ -12,10 +13,13 @@ class TableroAdmin(admin.ModelAdmin):
         'nivel',
         'accion',
         'responsable',
+        'orden',
     )
+    list_editable = ('orden',)  # 👈 Editable desde la grilla
+    ordering = ['orden']
     list_filter = ('eje_estrategico', 'nivel', 'responsable')
     search_fields = ('indicador', 'objetivo_estrategico', 'accion')
-    ordering = ('eje_estrategico', 'objetivo_estrategico')
+
 
 @admin.register(PerfilUsuario)
 class PerfilUsuarioAdmin(admin.ModelAdmin):

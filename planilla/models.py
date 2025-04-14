@@ -11,6 +11,9 @@ class Tablero(models.Model):
     accion = models.CharField(max_length=50, blank=True)
     responsable = models.CharField(max_length=100, blank=True)
 
+    # Nuevo campo para ordenar manualmente
+    orden = models.PositiveIntegerField(default=0, blank=False, null=False)
+
     def calcular_nivel_y_accion(self):
         if self.avance is None or self.meta_2025 in ["", None]:
             self.nivel = ""
@@ -31,6 +34,10 @@ class Tablero(models.Model):
             except ValueError:
                 self.nivel = ""
                 self.accion = ""
+
+    class Meta:
+        ordering = ['orden']  # Aplicar orden manual
+
 class PerfilUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     responsable = models.CharField(max_length=100)  # Ej: GT, GPD, GSC, etc.
