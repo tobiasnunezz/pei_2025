@@ -14,9 +14,8 @@ ORDEN_EJES = [
     "Desarrollo Institucional y del Talento Humano",
 ]
 
-    #@login_required
-    # @login_required  # Desactivado temporalmente
-    def lista_tablero(request):
+@login_required
+def lista_tablero(request):
     usuario = request.user
 
     if not usuario.is_authenticated:
@@ -46,7 +45,7 @@ ORDEN_EJES = [
         'es_admin': usuario.is_staff or usuario.is_superuser
     })
 
-#@login_required
+@login_required
 def editar_avance(request, id):
     tablero = get_object_or_404(Tablero, id=id)
 

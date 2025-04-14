@@ -3,7 +3,7 @@
 <div class="container mt-4">
   <h2 class="mb-4">📊 Tablero de Control</h2>
   <div class="table-responsive">
-    <table class="table table-bordered align-middle text-center table-striped">
+    <table class="table table-bordered align-middle text-center">
       <thead class="table-primary">
         <tr>
           <th style="width: 40px;">N°</th>
@@ -20,18 +20,18 @@
       </thead>
       <tbody>
         {% for eje, objetivos in agrupado.items %}
-          {% with contador=1 %}
+          {% with contador=forloop.counter %}
             {% for objetivo, items in objetivos.items %}
               {% for item in items %}
               <tr>
                 {% if forloop.first %}
-                  <td rowspan="{{ items|length }}">{{ forloop.parentloop.counter }}</td>
-                  <td rowspan="{{ items|length }}" class="fw-bold bg-light">{{ eje }}</td>
-                  <td rowspan="{{ items|length }}" class="align-middle bg-light">{{ objetivo }}</td>
+                  <td rowspan="{{ items|length }}">{{ forloop.parentloop.parentloop.counter }}</td>
+                  <td rowspan="{{ items|length }}"><strong>{{ eje }}</strong></td>
+                  <td rowspan="{{ items|length }}" class="fw-bold bg-light">{{ objetivo }}</td>
                 {% endif %}
-                <td class="text-start">{{ item.indicador|default_if_none:'' }}</td>
-                <td>{{ item.meta_2025|default_if_none:'' }}</td>
-                <td>{{ item.avance|default_if_none:'' }}</td>
+                <td>{{ forloop.counter }}. {{ item.indicador|default_if_none:'' }}</td>
+                <td>{{ item.meta_2025|default_if_none:"" }}</td>
+                <td>{{ item.avance|default_if_none:"" }}</td>
                 <td>
                   {% if item.nivel == "Bajo" %}
                     <span class="badge bg-danger">Bajo</span>
@@ -40,17 +40,13 @@
                   {% elif item.nivel == "Alto" %}
                     <span class="badge bg-success">Alto</span>
                   {% else %}
-                    &mdash;
+                    <!-- vacío -->
                   {% endif %}
                 </td>
-                <td>{{ item.accion|default_if_none:'' }}</td>
-                <td>{{ item.responsable|default_if_none:'' }}</td>
+                <td>{{ item.accion|default_if_none:"" }}</td>
+                <td>{{ item.responsable|default_if_none:"" }}</td>
                 <td>
-                  {% if es_admin or request.user.perfilusuario.responsable == item.responsable %}
-                    <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                  {% else %}
-                    —
-                  {% endif %}
+                  <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                 </td>
               </tr>
               {% endfor %}
