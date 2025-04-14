@@ -13,13 +13,6 @@ class TableroAdmin(admin.ModelAdmin):
         'accion',
         'responsable',
     )
-    list_editable = (
-        'meta_2025',
-        'avance',
-        'nivel',
-        'accion',
-        'responsable',
-    )
     list_filter = ('eje_estrategico', 'nivel', 'responsable')
     search_fields = ('indicador', 'objetivo_estrategico', 'accion')
     ordering = ('eje_estrategico', 'objetivo_estrategico')
