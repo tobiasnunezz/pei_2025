@@ -14,7 +14,7 @@ ORDEN_EJES = [
     "Desarrollo Institucional y del Talento Humano",
 ]
 
-@login_required
+#@login_required
 def lista_tablero(request):
     usuario = request.user
 
