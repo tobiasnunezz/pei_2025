@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>🕓 Historial de cambios del indicador</h3>
+
+  {% if historial %}
+    <table class="table table-bordered mt-3">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Usuario</th>
+          <th>Campo</th>
+          <th>Antes</th>
+          <th>Después</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cambio in historial %}
+          <tr>
+            <td>{{ cambio.fecha|date:"d/m/Y H:i" }}</td>
+            <td>{{ cambio.usuario }}</td>
+            <td>{{ cambio.campo }}</td>
+            <td>{{ cambio.valor_anterior }}</td>
+            <td>{{ cambio.valor_nuevo }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No se encontraron cambios para este indicador.</p>
+  {% endif %}
+</div>
+{% endblock %}
