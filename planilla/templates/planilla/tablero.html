@@ -28,6 +28,9 @@
           <th>Acción</th>
           <th>Responsable</th>
           <th>Editar</th>
+          {% if es_admin %}
+            <th>Historial</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -60,13 +63,18 @@
                 <td>
                   <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                 </td>
+                {% if es_admin %}
+                <td>
+                  <a href="{% url 'ver_historial' item.id %}" class="btn btn-sm btn-outline-secondary">Historial</a>
+                </td>
+                {% endif %}
               </tr>
               {% endfor %}
             {% endfor %}
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="10">No hay datos disponibles.</td>
+            <td colspan="11">No hay datos disponibles.</td>
           </tr>
         {% endfor %}
       </tbody>
