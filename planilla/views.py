@@ -177,3 +177,13 @@ def exportar_pdf(request):
     buffer.close()
     response.write(pdf)
     return response
+
+@staff_member_required
+def ver_historial(request, id):
+    tablero = get_object_or_404(Tablero, id=id)
+    historial = HistorialCambio.objects.filter(indicador=tablero).order_by('-fecha')
+
+    return render(request, 'planilla/historial_cambios.html', {
+        'tablero': tablero,
+        'historial': historial
+    })
