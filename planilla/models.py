@@ -59,13 +59,12 @@ class PerfilUsuario(models.Model):
         return f"{self.user.username} - {self.responsable}"
 
 class HistorialCambio(models.Model):
-    tablero = models.ForeignKey(Tablero, on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    campo_modificado = models.CharField(max_length=50)
-    valor_anterior = models.TextField(blank=True, null=True)
-    valor_nuevo = models.TextField(blank=True, null=True)
-    fecha_cambio = models.DateTimeField(auto_now_add=True)
+    indicador = models.ForeignKey(Tablero, on_delete=models.CASCADE)
+    campo = models.CharField(max_length=100)
+    valor_anterior = models.CharField(max_length=255, blank=True, null=True)
+    valor_nuevo = models.CharField(max_length=255, blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.usuario} cambió {self.campo_modificado} en {self.tablero.indicador}"
-
+        return f"{self.usuario} cambió {self.campo} en '{self.indicador.indicador}'"
