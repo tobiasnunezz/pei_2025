@@ -9,7 +9,7 @@ import io
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-from .models import Tablero, PerfilUsuario
+from .models import Tablero, PerfilUsuario, HistorialCambio
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
 
 ORDEN_EJES = [
