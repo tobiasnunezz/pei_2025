@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-$he5r((u1zv(8xtx^$ld1h^th2i62$t#wluw)ho!r%s%ws^=vs
 DEBUG = True
 
 #ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['192.168.1.214', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.214', 'localhost', '127.0.0.1', 'pei.conatel.gov.py']
 
 
 # Application definition
@@ -131,12 +131,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# En producción, recolecta los archivos estáticos en esta carpeta
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Asegúrate de que esta carpeta sea accesible en el sistema de archivos
+# ✅ Configuración para servir estáticos correctamente con NGINX
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/dashboard/staticfiles/'  # 📦 Se copian aquí con collectstatic
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Utiliza esta opción si tu carpeta 'static' está en el mismo nivel que manage.py
-] 
+    os.path.join(BASE_DIR, "static"),  # 📁 Donde trabajás tus archivos
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
