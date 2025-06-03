@@ -27,6 +27,7 @@
           <th>Nivel</th>
           <th>Acción</th>
           <th>Responsable</th>
+          <th>Observación</th>
           <th>Editar</th>
           {% if es_admin %}
             <th>Historial</th>
@@ -60,6 +61,7 @@
                 </td>
                 <td>{{ item.accion|default_if_none:"" }}</td>
                 <td>{{ item.responsable|default_if_none:"" }}</td>
+                <td>{{ item.observacion|default_if_none:"" }}</td>
                 <td>
                   <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                 </td>
@@ -74,7 +76,7 @@
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="11">No hay datos disponibles.</td>
+            <td colspan="12">No hay datos disponibles.</td>
           </tr>
         {% endfor %}
       </tbody>
