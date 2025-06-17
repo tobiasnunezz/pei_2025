@@ -28,47 +28,32 @@ class AvanceForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select'}),
         required=True
     )
+    observacion = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        required=False,
+        label="Observación"
+    )
 
     class Meta:
         model = Tablero
-        fields = ['avance']
+        fields = ['avance', 'observacion', 'nivel', 'accion']
+        widgets = {
+            'nivel': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'accion': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+        }
 
     def clean(self):
         cleaned_data = super().clean()
-        avance = cleaned_data.get('avance')
+        tablero = self.instance
 
-        if avance is not None:
-            tablero = self.instance
-            if avance == "0":
-                tablero.nivel = "No existe avance"
-                tablero.accion = "Correctiva"
-            elif avance == "1":
-                tablero.nivel = "Bajo"
-                tablero.accion = "Correctiva"
-            elif avance == "25":
-                tablero.nivel = "Aceptable"
-                tablero.accion = "Preventiva"
-            elif avance == "50":
-                tablero.nivel = "Medio"
-                tablero.accion = "Preventiva"
-            elif avance == "75":
-                tablero.nivel = "Satisfactorio"
-                tablero.accion = "Analizar tendencias"
-            elif avance == "90":
-                tablero.nivel = "Óptimo"
-                tablero.accion = "Analizar tendencias"
-            elif avance == "No Iniciado":
-                tablero.nivel = "No existe avance"
-                tablero.accion = "Correctiva"
-            elif avance == "En proceso":
-                tablero.nivel = "Medio"
-                tablero.accion = "Preventiva"
-            elif avance in ["Aprobado", "Presentado", "Aprobado/Presentado-a"]:
-                tablero.nivel = "Óptimo"
-                tablero.accion = "Analizar tendencias"
+        # Cargar los valores del form para cálculo
+        tablero.avance = cleaned_data.get('avance')
+        tablero.calcular_nivel_y_accion()
 
+        # Cargar al formulario lo calculado (visualmente)
+        cleaned_data['nivel'] = tablero.nivel
+        cleaned_data['accion'] = tablero.accion
         return cleaned_data
-
 
 # 🧑‍💼 Formulario para el admin con todos los campos
 class TableroCompletoForm(forms.ModelForm):
@@ -90,8 +75,8 @@ class TableroCompletoForm(forms.ModelForm):
             'accion': forms.TextInput(attrs={'class': 'form-control'}),
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),
             'orden': forms.NumberInput(attrs={'class': 'form-control'}),
+            'observacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
-
 
 # 👤 Formulario para modificar responsable del perfil de usuario
 class PerfilUsuarioForm(forms.ModelForm):
@@ -102,7 +87,6 @@ class PerfilUsuarioForm(forms.ModelForm):
             'user': forms.Select(attrs={'class': 'form-select'}),
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
 
 # 🆕 Crear nuevo usuario + perfil (staff)
 class CrearUsuarioForm(forms.ModelForm):
