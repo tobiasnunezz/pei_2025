@@ -43,19 +43,22 @@ class AvanceForm(forms.ModelForm):
             self.fields['avance'] = forms.ChoiceField(
                 choices=CUANTITATIVOS,
                 widget=forms.Select(attrs={'class': 'form-select'}),
-                required=True
+                required=True,
+                help_text="Seleccione el rango de cumplimiento en porcentaje."
             )
         elif tablero.tipo_meta == "texto":
             self.fields['avance'] = forms.ChoiceField(
                 choices=CUALITATIVOS,
                 widget=forms.Select(attrs={'class': 'form-select'}),
-                required=True
+                required=True,
+                help_text="Seleccione el estado de avance correspondiente."
             )
         else:  # tipo_meta == "numero"
             self.fields['avance'] = forms.CharField(
                 widget=forms.TextInput(attrs={'class': 'form-control'}),
                 required=True,
-                label="Avance"
+                label="Avance",
+                help_text="Ingrese un número según la meta definida."
             )
 
     def clean(self):
@@ -71,12 +74,6 @@ class AvanceForm(forms.ModelForm):
 
 # 🧑‍💼 Formulario para el admin con todos los campos
 class TableroCompletoForm(forms.ModelForm):
-    avance = forms.ChoiceField(
-        choices=CUANTITATIVOS + CUALITATIVOS,
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        required=False
-    )
-
     class Meta:
         model = Tablero
         fields = '__all__'
@@ -85,7 +82,7 @@ class TableroCompletoForm(forms.ModelForm):
             'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
-            'tipo_meta': forms.Select(attrs={'class': 'form-select'}),  # 👈 agregado
+            'tipo_meta': forms.Select(attrs={'class': 'form-select'}),
             'nivel': forms.TextInput(attrs={'class': 'form-control'}),
             'accion': forms.TextInput(attrs={'class': 'form-control'}),
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),
