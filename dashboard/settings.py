@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'planilla',
     'adminsortable2',
+    'crum',
 ]
 
 MIDDLEWARE = [

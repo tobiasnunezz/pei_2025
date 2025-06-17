@@ -11,6 +11,8 @@ class Tablero(models.Model):
     accion = models.CharField(max_length=50, blank=True)
     responsable = models.CharField(max_length=100, blank=True)
     orden = models.PositiveIntegerField(default=0)
+    observacion = models.TextField(blank=True, null=True)
+
 
     def calcular_nivel_y_accion(self):
         avance = (self.avance or "").strip().lower()
