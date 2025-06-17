@@ -1,9 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Editar Avance</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-</form>
+<div class="container mt-4">
+  <h2 class="mb-4">✏️ Editar Avance</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <p><strong>Indicador:</strong> {{ tablero.indicador }}</p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="id_avance" class="form-label">📈 Avance</label>
+          {{ form.avance }}
+        </div>
+
+        <div class="mb-3">
+          <label for="id_observacion" class="form-label">📝 Observación</label>
+          {{ form.observacion }}
+        </div>
+
+        <button type="submit" class="btn btn-success">
+          💾 Guardar
+        </button>
+        <a href="{% url 'lista_tablero' %}" class="btn btn-secondary ms-2">↩️ Cancelar</a>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
