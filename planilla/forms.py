@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Tablero, PerfilUsuario
 
-# Opciones de avance
+# Opciones de avance según tipo
 CUANTITATIVOS = [
     ("", "---------"),
     ("0", "0%"),
@@ -19,15 +19,8 @@ CUALITATIVOS = [
     ("Presentado", "Aprobado/Presentado-a"),
 ]
 
-AVANCE_CHOICES = CUANTITATIVOS + CUALITATIVOS
-
 # ✏️ Formulario para usuarios comunes
 class AvanceForm(forms.ModelForm):
-    avance = forms.ChoiceField(
-        choices=AVANCE_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        required=True
-    )
     observacion = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         required=False,
@@ -42,15 +35,36 @@ class AvanceForm(forms.ModelForm):
             'accion': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        tablero = self.instance
+
+        if tablero.tipo_meta == "porcentaje":
+            self.fields['avance'] = forms.ChoiceField(
+                choices=CUANTITATIVOS,
+                widget=forms.Select(attrs={'class': 'form-select'}),
+                required=True
+            )
+        elif tablero.tipo_meta == "texto":
+            self.fields['avance'] = forms.ChoiceField(
+                choices=CUALITATIVOS,
+                widget=forms.Select(attrs={'class': 'form-select'}),
+                required=True
+            )
+        else:  # tipo_meta == "numero"
+            self.fields['avance'] = forms.CharField(
+                widget=forms.TextInput(attrs={'class': 'form-control'}),
+                required=True,
+                label="Avance"
+            )
+
     def clean(self):
         cleaned_data = super().clean()
         tablero = self.instance
 
-        # Cargar los valores del form para cálculo
         tablero.avance = cleaned_data.get('avance')
         tablero.calcular_nivel_y_accion()
 
-        # Cargar al formulario lo calculado (visualmente)
         cleaned_data['nivel'] = tablero.nivel
         cleaned_data['accion'] = tablero.accion
         return cleaned_data
@@ -58,7 +72,7 @@ class AvanceForm(forms.ModelForm):
 # 🧑‍💼 Formulario para el admin con todos los campos
 class TableroCompletoForm(forms.ModelForm):
     avance = forms.ChoiceField(
-        choices=AVANCE_CHOICES,
+        choices=CUANTITATIVOS + CUALITATIVOS,
         widget=forms.Select(attrs={'class': 'form-select'}),
         required=False
     )
@@ -71,6 +85,7 @@ class TableroCompletoForm(forms.ModelForm):
             'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_meta': forms.Select(attrs={'class': 'form-select'}),  # 👈 agregado
             'nivel': forms.TextInput(attrs={'class': 'form-control'}),
             'accion': forms.TextInput(attrs={'class': 'form-control'}),
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),

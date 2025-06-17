@@ -1,18 +1,29 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Tipos de meta posibles
+TIPO_META_CHOICES = [
+    ('porcentaje', 'Porcentaje'),
+    ('numero', 'Número'),
+    ('texto', 'Texto'),
+]
+
 class Tablero(models.Model):
     eje_estrategico = models.CharField(max_length=255)
     objetivo_estrategico = models.TextField()
     indicador = models.TextField()
     meta_2025 = models.CharField(max_length=100)
+    tipo_meta = models.CharField(  # Nuevo campo
+        max_length=20,
+        choices=TIPO_META_CHOICES,
+        default='porcentaje'
+    )
     avance = models.CharField(max_length=100, blank=True, null=True)  # Puede ser texto o número
     nivel = models.CharField(max_length=50, blank=True)
     accion = models.CharField(max_length=50, blank=True)
     responsable = models.CharField(max_length=100, blank=True)
     orden = models.PositiveIntegerField(default=0)
     observacion = models.TextField(blank=True, null=True)
-
 
     def calcular_nivel_y_accion(self):
         avance = (self.avance or "").strip().lower()
