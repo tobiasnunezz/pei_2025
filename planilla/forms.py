@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Tablero, PerfilUsuario
 
-# Opciones de avance según tipo
 CUANTITATIVOS = [
     ("", "---------"),
     ("0", "0%"),
@@ -19,7 +18,6 @@ CUALITATIVOS = [
     ("Presentado", "Aprobado/Presentado-a"),
 ]
 
-# ✏️ Formulario para usuarios comunes
 class AvanceForm(forms.ModelForm):
     observacion = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -38,22 +36,23 @@ class AvanceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         tablero = self.instance
+        tipo = getattr(tablero, 'tipo_meta', 'porcentaje')
 
-        if tablero.tipo_meta == "porcentaje":
+        if tipo == "porcentaje":
             self.fields['avance'] = forms.ChoiceField(
                 choices=CUANTITATIVOS,
                 widget=forms.Select(attrs={'class': 'form-select'}),
                 required=True,
                 help_text="Seleccione el rango de cumplimiento en porcentaje."
             )
-        elif tablero.tipo_meta == "texto":
+        elif tipo == "texto":
             self.fields['avance'] = forms.ChoiceField(
                 choices=CUALITATIVOS,
                 widget=forms.Select(attrs={'class': 'form-select'}),
                 required=True,
                 help_text="Seleccione el estado de avance correspondiente."
             )
-        else:  # tipo_meta == "numero"
+        else:  # tipo == "numero"
             self.fields['avance'] = forms.CharField(
                 widget=forms.TextInput(attrs={'class': 'form-control'}),
                 required=True,
@@ -72,25 +71,6 @@ class AvanceForm(forms.ModelForm):
         cleaned_data['accion'] = tablero.accion
         return cleaned_data
 
-# 🧑‍💼 Formulario para el admin con todos los campos
-class TableroCompletoForm(forms.ModelForm):
-    class Meta:
-        model = Tablero
-        fields = '__all__'
-        widgets = {
-            'eje_estrategico': forms.TextInput(attrs={'class': 'form-control'}),
-            'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
-            'tipo_meta': forms.Select(attrs={'class': 'form-select'}),
-            'nivel': forms.TextInput(attrs={'class': 'form-control'}),
-            'accion': forms.TextInput(attrs={'class': 'form-control'}),
-            'responsable': forms.TextInput(attrs={'class': 'form-control'}),
-            'orden': forms.NumberInput(attrs={'class': 'form-control'}),
-            'observacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-        }
-
-# 👤 Formulario para modificar responsable del perfil de usuario
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = PerfilUsuario
@@ -100,7 +80,6 @@ class PerfilUsuarioForm(forms.ModelForm):
             'responsable': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-# 🆕 Crear nuevo usuario + perfil (staff)
 class CrearUsuarioForm(forms.ModelForm):
     responsable = forms.CharField(
         max_length=100,

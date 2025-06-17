@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from .models import Tablero, PerfilUsuario, HistorialCambio
-from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
+from .forms import AvanceForm, PerfilUsuarioForm, CrearUsuarioForm
 
 ORDEN_EJES = [
     "Desarrollo y Fomento del Sector",
@@ -22,9 +22,7 @@ ORDEN_EJES = [
 @login_required
 def lista_tablero(request):
     usuario = request.user
-    if not usuario.is_authenticated:
-        tableros = list(Tablero.objects.all())
-    elif usuario.is_staff or usuario.is_superuser:
+    if usuario.is_staff or usuario.is_superuser:
         tableros = list(Tablero.objects.all())
     else:
         responsable = usuario.perfilusuario.responsable
@@ -50,15 +48,13 @@ def lista_tablero(request):
 def editar_avance(request, id):
     tablero = get_object_or_404(Tablero, id=id)
 
-    if request.user.is_staff or request.user.is_superuser:
-        FormClass = TableroCompletoForm
-    else:
+    # Restringir si no es responsable ni admin
+    if not request.user.is_staff and not request.user.is_superuser:
         if request.user.perfilusuario.responsable != tablero.responsable:
             return redirect('lista_tablero')
-        FormClass = AvanceForm
 
     if request.method == 'POST':
-        form = FormClass(request.POST, instance=tablero)
+        form = AvanceForm(request.POST, instance=tablero)
         if form.is_valid():
             tablero = form.save(commit=False)
             tablero.calcular_nivel_y_accion()
@@ -66,7 +62,7 @@ def editar_avance(request, id):
             messages.success(request, "Indicador actualizado correctamente.")
             return redirect('lista_tablero')
     else:
-        form = FormClass(instance=tablero)
+        form = AvanceForm(instance=tablero)
 
     return render(request, 'planilla/editar_avance.html', {
         'form': form,
