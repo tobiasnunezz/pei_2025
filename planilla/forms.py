@@ -5,7 +5,7 @@ from .models import Tablero, PerfilUsuario
 CUANTITATIVOS = [
     ("", "---------"),
     ("0", "0%"),
-    ("1", "1 – 24%"),
+    ("10", "1 – 24%"),
     ("25", "25 – 49%"),
     ("50", "50 – 74%"),
     ("75", "75 – 89%"),
@@ -13,10 +13,33 @@ CUANTITATIVOS = [
 ]
 
 CUALITATIVOS = [
-    ("No Iniciado", "No Iniciado"),
-    ("En proceso", "En proceso"),
-    ("Presentado", "Aprobado/Presentado-a"),
+    ("no iniciado", "No Iniciado"),
+    ("en proceso", "En proceso"),
+    ("presentado", "Presentado"),
+    ("aprobado", "Aprobado"),
 ]
+
+def obtener_campo_avance_por_tipo(tipo_meta):
+    if tipo_meta == "porcentaje":
+        return forms.ChoiceField(
+            choices=CUANTITATIVOS,
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Avance"
+        )
+    elif tipo_meta == "texto":
+        return forms.ChoiceField(
+            choices=CUALITATIVOS,
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Avance"
+        )
+    else:
+        return forms.CharField(
+            widget=forms.TextInput(attrs={'class': 'form-control'}),
+            required=True,
+            label="Avance"
+        )
 
 class AvanceForm(forms.ModelForm):
     observacion = forms.CharField(
@@ -35,41 +58,44 @@ class AvanceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        tablero = self.instance
-        tipo = getattr(tablero, 'tipo_meta', 'porcentaje')
-
-        if tipo == "porcentaje":
-            self.fields['avance'] = forms.ChoiceField(
-                choices=CUANTITATIVOS,
-                widget=forms.Select(attrs={'class': 'form-select'}),
-                required=True,
-                help_text="Seleccione el rango de cumplimiento en porcentaje."
-            )
-        elif tipo == "texto":
-            self.fields['avance'] = forms.ChoiceField(
-                choices=CUALITATIVOS,
-                widget=forms.Select(attrs={'class': 'form-select'}),
-                required=True,
-                help_text="Seleccione el estado de avance correspondiente."
-            )
-        else:  # tipo == "numero"
-            self.fields['avance'] = forms.CharField(
-                widget=forms.TextInput(attrs={'class': 'form-control'}),
-                required=True,
-                label="Avance",
-                help_text="Ingrese un número según la meta definida."
-            )
+        tipo_meta = self.instance.tipo_meta
+        self.fields['avance'] = obtener_campo_avance_por_tipo(tipo_meta)
 
     def clean(self):
         cleaned_data = super().clean()
         tablero = self.instance
-
         tablero.avance = cleaned_data.get('avance')
         tablero.calcular_nivel_y_accion()
-
         cleaned_data['nivel'] = tablero.nivel
         cleaned_data['accion'] = tablero.accion
         return cleaned_data
+
+class TableroCompletoForm(forms.ModelForm):
+    observacion = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        required=False,
+        label="Observación"
+    )
+
+    class Meta:
+        model = Tablero
+        fields = '__all__'
+        widgets = {
+            'eje_estrategico': forms.TextInput(attrs={'class': 'form-control'}),
+            'objetivo_estrategico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'indicador': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'meta_2025': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_meta': forms.Select(attrs={'class': 'form-select'}),
+            'nivel': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'accion': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'responsable': forms.TextInput(attrs={'class': 'form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        tipo_meta = self.instance.tipo_meta
+        self.fields['avance'] = obtener_campo_avance_por_tipo(tipo_meta)
 
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:

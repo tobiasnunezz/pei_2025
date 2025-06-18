@@ -1,17 +1,15 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.http import HttpResponse
+from .models import Tablero, HistorialCambio, PerfilUsuario, HistorialAvance
+from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
+from django.utils.timezone import now
+from django.contrib.auth.models import User
 from collections import defaultdict
 import csv
-import io
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
-from .models import Tablero, PerfilUsuario, HistorialCambio
-from .forms import AvanceForm, PerfilUsuarioForm, CrearUsuarioForm
-
+# Orden personalizado de los ejes
 ORDEN_EJES = [
     "Desarrollo y Fomento del Sector",
     "Gestión de los Recursos Financieros",
@@ -22,7 +20,9 @@ ORDEN_EJES = [
 @login_required
 def lista_tablero(request):
     usuario = request.user
-    if usuario.is_staff or usuario.is_superuser:
+    if not usuario.is_authenticated:
+        tableros = list(Tablero.objects.all())
+    elif usuario.is_staff or usuario.is_superuser:
         tableros = list(Tablero.objects.all())
     else:
         responsable = usuario.perfilusuario.responsable
@@ -47,139 +47,86 @@ def lista_tablero(request):
 @login_required
 def editar_avance(request, id):
     tablero = get_object_or_404(Tablero, id=id)
+    usuario = request.user
 
-    # Restringir si no es responsable ni admin
-    if not request.user.is_staff and not request.user.is_superuser:
-        if request.user.perfilusuario.responsable != tablero.responsable:
+    if usuario.is_staff:
+        form = AvanceForm(request.POST or None, instance=tablero)
+    else:
+        if tablero.responsable != usuario.perfilusuario.responsable:
             return redirect('lista_tablero')
+        form = AvanceForm(request.POST or None, instance=tablero)
+
+    if request.method == 'POST' and form.is_valid():
+        antiguo = tablero.avance
+        observacion_anterior = tablero.observacion
+        nuevo = form.cleaned_data['avance']
+        nueva_observacion = form.cleaned_data.get('observacion')
+
+        form.save()
+
+        if antiguo != nuevo or observacion_anterior != nueva_observacion:
+            HistorialCambio.objects.create(
+                usuario=usuario,
+                indicador=tablero,
+                campo='avance',
+                valor_anterior=antiguo,
+                valor_nuevo=nuevo
+            )
+            HistorialAvance.objects.create(
+                tablero=tablero,
+                usuario=usuario,
+                avance_anterior=antiguo or '',
+                avance_nuevo=nuevo or '',
+                observacion=nueva_observacion
+            )
+
+        messages.success(request, 'Avance actualizado correctamente.')
+        return redirect('lista_tablero')
+
+    return render(request, 'planilla/editar_avance.html', {'form': form, 'tablero': tablero})
+
+@login_required
+def gestionar_perfiles(request):
+    perfiles = PerfilUsuario.objects.all()
+    form = CrearUsuarioForm()
 
     if request.method == 'POST':
-        form = AvanceForm(request.POST, instance=tablero)
-        if form.is_valid():
-            tablero = form.save(commit=False)
-            tablero.calcular_nivel_y_accion()
-            tablero.save()
-            messages.success(request, "Indicador actualizado correctamente.")
-            return redirect('lista_tablero')
-    else:
-        form = AvanceForm(instance=tablero)
-
-    return render(request, 'planilla/editar_avance.html', {
-        'form': form,
-        'tablero': tablero,
-        'es_admin': request.user.is_staff
-    })
-
-@staff_member_required
-def gestionar_perfiles(request):
-    query = request.GET.get('q', '')
-    perfiles = PerfilUsuario.objects.select_related('user').filter(
-        user__username__icontains=query
-    )
-
-    if request.method == 'POST' and 'crear_usuario' in request.POST:
-        crear_form = CrearUsuarioForm(request.POST)
-        if crear_form.is_valid():
-            crear_form.save()
-            messages.success(request, "Usuario creado correctamente.")
-            return redirect('gestionar_perfiles')
-    else:
-        crear_form = CrearUsuarioForm()
-
-    if request.method == 'POST' and 'perfil_id' in request.POST:
-        perfil_id = request.POST.get('perfil_id')
-        perfil = get_object_or_404(PerfilUsuario, id=perfil_id)
-        form = PerfilUsuarioForm(request.POST, instance=perfil)
+        form = CrearUsuarioForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Responsable de {perfil.user.username} actualizado.")
+            messages.success(request, "Usuario creado correctamente.")
             return redirect('gestionar_perfiles')
 
-    forms_por_perfil = [
-        (perfil, PerfilUsuarioForm(instance=perfil, prefix=str(perfil.id)))
-        for perfil in perfiles
-    ]
+    return render(request, 'planilla/gestionar_perfiles.html', {'perfiles': perfiles, 'form': form})
 
-    return render(request, 'planilla/gestionar_perfiles.html', {
-        'forms_por_perfil': forms_por_perfil,
-        'crear_form': crear_form,
-        'query': query
-    })
-
-@staff_member_required
+@login_required
 def admin_tablero(request):
-    tableros = list(Tablero.objects.all())
-    agrupado = defaultdict(lambda: defaultdict(list))
-    for t in tableros:
-        eje = (t.eje_estrategico or "").strip()
-        objetivo = (t.objetivo_estrategico or "").strip()
-        agrupado[eje][objetivo].append(t)
+    tableros = Tablero.objects.all().order_by('orden')
+    return render(request, 'planilla/admin_tablero.html', {'tableros': tableros})
 
-    agrupado_ordenado = {}
-    for eje in ORDEN_EJES:
-        if eje in agrupado:
-            agrupado_ordenado[eje] = dict(sorted(agrupado[eje].items()))
-
-    return render(request, 'planilla/admin_tablero.html', {
-        'agrupado': agrupado_ordenado
-    })
-
-@staff_member_required
+@login_required
 def exportar_excel(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="tablero.csv"'
-
     writer = csv.writer(response)
-    writer.writerow(['Eje Estratégico', 'Objetivo', 'Indicador', 'Meta 2025', 'Avance', 'Nivel', 'Acción', 'Responsable'])
+    writer.writerow(['Eje', 'Objetivo', 'Indicador', 'Meta', 'Avance', 'Nivel', 'Acción'])
 
     for t in Tablero.objects.all().order_by('orden'):
-        writer.writerow([
-            t.eje_estrategico,
-            t.objetivo_estrategico,
-            t.indicador,
-            t.meta_2025,
-            t.avance,
-            t.nivel,
-            t.accion,
-            t.responsable
-        ])
+        writer.writerow([t.eje_estrategico, t.objetivo_estrategico, t.indicador, t.meta_2025, t.avance, t.nivel, t.accion])
 
     return response
 
-@staff_member_required
+@login_required
 def exportar_pdf(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="tablero.pdf"'
+    return HttpResponse("Exportar a PDF aún no implementado")
 
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    y = 750
-
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(100, y, "Tablero de Control - Exportación PDF")
-    y -= 30
-    p.setFont("Helvetica", 8)
-
-    for t in Tablero.objects.all().order_by('orden'):
-        linea = f"{t.eje_estrategico} | {t.objetivo_estrategico} | {t.indicador} | {t.meta_2025} | {t.avance} | {t.nivel} | {t.accion} | {t.responsable}"
-        p.drawString(40, y, linea)
-        y -= 15
-        if y < 40:
-            p.showPage()
-            y = 750
-
-    p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response
-
-@staff_member_required
+@login_required
 def ver_historial(request, id):
     tablero = get_object_or_404(Tablero, id=id)
-    historial = HistorialCambio.objects.filter(indicador=tablero).order_by('-fecha')
-
-    return render(request, 'planilla/historial_cambios.html', {
+    historial_cambios = HistorialCambio.objects.filter(indicador=tablero).order_by('-fecha')
+    historial_avances = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha')
+    return render(request, 'planilla/ver_historial.html', {
         'tablero': tablero,
-        'historial': historial
+        'historial': historial_cambios,
+        'historial_avances': historial_avances
     })

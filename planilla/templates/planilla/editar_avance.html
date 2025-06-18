@@ -3,7 +3,7 @@
 <div class="container mt-4">
   <h2 class="mb-4">✏️ Editar Avance</h2>
 
-  <div class="card">
+  <div class="card shadow-sm">
     <div class="card-body">
       <p><strong>Indicador:</strong> {{ tablero.indicador }}</p>
 
@@ -11,18 +11,22 @@
         {% csrf_token %}
 
         <div class="mb-3">
-          <label for="id_avance" class="form-label">📈 Avance</label>
+          <label for="{{ form.avance.id_for_label }}" class="form-label">📈 Avance</label>
           {{ form.avance }}
+          {% if form.avance.errors %}
+            <div class="text-danger">{{ form.avance.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="mb-3">
-          <label for="id_observacion" class="form-label">📝 Observación</label>
+          <label for="{{ form.observacion.id_for_label }}" class="form-label">📝 Observación</label>
           {{ form.observacion }}
+          {% if form.observacion.errors %}
+            <div class="text-danger">{{ form.observacion.errors }}</div>
+          {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-success">
-          💾 Guardar
-        </button>
+        <button type="submit" class="btn btn-success">💾 Guardar</button>
         <a href="{% url 'lista_tablero' %}" class="btn btn-secondary ms-2">↩️ Cancelar</a>
       </form>
     </div>

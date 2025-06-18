@@ -13,12 +13,12 @@ class Tablero(models.Model):
     objetivo_estrategico = models.TextField()
     indicador = models.TextField()
     meta_2025 = models.CharField(max_length=100)
-    tipo_meta = models.CharField(  # Nuevo campo
+    tipo_meta = models.CharField(
         max_length=20,
         choices=TIPO_META_CHOICES,
         default='porcentaje'
     )
-    avance = models.CharField(max_length=100, blank=True, null=True)  # Puede ser texto o número
+    avance = models.CharField(max_length=100, blank=True, null=True)
     nivel = models.CharField(max_length=50, blank=True)
     accion = models.CharField(max_length=50, blank=True)
     responsable = models.CharField(max_length=100, blank=True)
@@ -81,3 +81,14 @@ class HistorialCambio(models.Model):
 
     def __str__(self):
         return f"{self.usuario} cambió {self.campo} en '{self.indicador.indicador}'"
+
+class HistorialAvance(models.Model):
+    tablero = models.ForeignKey(Tablero, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    avance_anterior = models.CharField(max_length=255)
+    avance_nuevo = models.CharField(max_length=255)
+    observacion = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tablero.indicador} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"

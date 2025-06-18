@@ -1,6 +1,35 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
+<style>
+  /* CAMBIO: Ajustes de fuente y padding para mayor visibilidad sin scroll */
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal; /* CAMBIO: permite el salto de línea en celdas largas */
+  }
+
+  .badge {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .btn-sm {
+    font-size: 12px;
+    padding: 2px 6px;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .container-wide {
+    max-width: 100%;
+  }
+</style>
+
+<div class="container-fluid mt-4"> <!-- CAMBIO: de container a container-fluid -->
   <h2 class="mb-4">📊 Tablero de Control</h2>
 
   {% if es_admin %}
@@ -14,23 +43,23 @@
     </div>
   {% endif %}
 
-  <div class="table-responsive" style="overflow-x: auto;">
-  <table class="table table-bordered align-middle text-center" style="min-width: 1000px;">
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-center">
       <thead class="table-primary">
         <tr>
-          <th style="width: 40px;">N°</th>
-          <th>Eje Estratégico</th>
-          <th>Objetivo Estratégico</th>
-          <th>Indicador</th>
-          <th>Meta 2025</th>
-          <th>Avance</th>
-          <th>Nivel</th>
-          <th>Acción</th>
-          <th>Responsable</th>
-          <th>Observación</th>
-          <th>Editar</th>
+          <th style="width: 30px;">N°</th>
+          <th>EJE ESTRATÉGICO</th>
+          <th>OBJETIVO ESTRATÉGICO</th>
+          <th>INDICADOR</th>
+          <th>META 2025</th>
+          <th>AVANCE</th>
+          <th>NIVEL</th>
+          <th>ACCIÓN</th>
+          <th>RESPONSABLE</th>
+          <th>OBSERVACIÓN</th>
+          <th>EDITAR</th>
           {% if es_admin %}
-            <th>Historial</th>
+            <th>HISTORIAL</th>
           {% endif %}
         </tr>
       </thead>
@@ -49,14 +78,20 @@
                 <td>{{ item.meta_2025|default_if_none:"" }}</td>
                 <td>{{ item.avance|default_if_none:"" }}</td>
                 <td>
-                  {% if item.nivel == "Bajo" %}
-                    <span class="badge bg-danger">Bajo</span>
+                  {% if item.nivel == "No existe avance" %}
+                    <span class="badge bg-danger">No existe</span>
+                  {% elif item.nivel == "Bajo" %}
+                    <span class="badge" style="background-color: orange;">Bajo</span>
+                  {% elif item.nivel == "Aceptable" %}
+                    <span class="badge" style="background-color: gold; color: black;">Aceptable</span>
                   {% elif item.nivel == "Medio" %}
-                    <span class="badge bg-warning text-dark">Medio</span>
-                  {% elif item.nivel == "Alto" %}
-                    <span class="badge bg-success">Alto</span>
+                    <span class="badge" style="background-color: yellow; color: black;">Medio</span>
+                  {% elif item.nivel == "Satisfactorio" %}
+                    <span class="badge" style="background-color: lightseagreen;">Satisfactorio</span>
+                  {% elif item.nivel == "Óptimo" %}
+                    <span class="badge bg-success">Óptimo</span>
                   {% else %}
-                    <!-- vacío -->
+                    {{ item.nivel|default_if_none:"" }}
                   {% endif %}
                 </td>
                 <td>{{ item.accion|default_if_none:"" }}</td>
