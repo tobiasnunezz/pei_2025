@@ -57,27 +57,30 @@ def editar_avance(request, id):
         form = AvanceForm(request.POST or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
+        # Guardar valores anteriores antes del save()
         antiguo = tablero.avance
         observacion_anterior = tablero.observacion
         nuevo = form.cleaned_data['avance']
         nueva_observacion = form.cleaned_data.get('observacion')
 
+        # Guardamos la nueva instancia
         form.save()
 
+        # Solo registrar si hubo cambios
         if antiguo != nuevo or observacion_anterior != nueva_observacion:
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
                 campo='avance',
-                valor_anterior=antiguo,
-                valor_nuevo=nuevo
+                valor_anterior=antiguo or '',
+                valor_nuevo=nuevo or ''
             )
             HistorialAvance.objects.create(
                 tablero=tablero,
                 usuario=usuario,
                 avance_anterior=antiguo or '',
                 avance_nuevo=nuevo or '',
-                observacion=nueva_observacion
+                observacion=nueva_observacion or ''
             )
 
         messages.success(request, 'Avance actualizado correctamente.')
