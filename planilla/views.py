@@ -4,12 +4,9 @@ from django.contrib import messages
 from django.http import HttpResponse
 from .models import Tablero, HistorialCambio, PerfilUsuario, HistorialAvance
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
-from django.utils.timezone import now
-from django.contrib.auth.models import User
 from collections import defaultdict
 import csv
 
-# Orden personalizado de los ejes
 ORDEN_EJES = [
     "Desarrollo y Fomento del Sector",
     "Gestión de los Recursos Financieros",
@@ -20,9 +17,7 @@ ORDEN_EJES = [
 @login_required
 def lista_tablero(request):
     usuario = request.user
-    if not usuario.is_authenticated:
-        tableros = list(Tablero.objects.all())
-    elif usuario.is_staff or usuario.is_superuser:
+    if usuario.is_staff or usuario.is_superuser:
         tableros = list(Tablero.objects.all())
     else:
         responsable = usuario.perfilusuario.responsable
@@ -50,43 +45,59 @@ def editar_avance(request, id):
     usuario = request.user
 
     if usuario.is_staff:
-        form = AvanceForm(request.POST or None, instance=tablero)
+        form = TableroCompletoForm(request.POST or None, instance=tablero)
     else:
         if tablero.responsable != usuario.perfilusuario.responsable:
             return redirect('lista_tablero')
         form = AvanceForm(request.POST or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
-        # Guardar valores anteriores antes del save()
-        antiguo = tablero.avance
-        observacion_anterior = tablero.observacion
-        nuevo = form.cleaned_data['avance']
-        nueva_observacion = form.cleaned_data.get('observacion')
+        # Captura de valores antiguos
+        antiguo_avance = tablero.avance
+        antigua_observacion = getattr(tablero, 'observacion', '')
+        antiguo_nivel = tablero.nivel
+        antigua_accion = tablero.accion
 
-        # Guardamos la nueva instancia
-        form.save()
+        form.save()  # Guarda nuevos valores
+        nuevo_avance = form.cleaned_data.get('avance', '')
+        nueva_observacion = form.cleaned_data.get('observacion', '')
+        nuevo_nivel = tablero.nivel
+        nueva_accion = tablero.accion
 
-        # Solo registrar si hubo cambios
-        if antiguo != nuevo or observacion_anterior != nueva_observacion:
-            HistorialCambio.objects.create(
-                usuario=usuario,
-                indicador=tablero,
-                campo='avance',
-                valor_anterior=antiguo or '',
-                valor_nuevo=nuevo or ''
-            )
+        # HistorialCambio por campo
+        campos = [
+            ('avance', antiguo_avance, nuevo_avance),
+            ('observacion', antigua_observacion, nueva_observacion),
+            ('nivel', antiguo_nivel, nuevo_nivel),
+            ('accion', antigua_accion, nueva_accion),
+        ]
+        for campo, anterior, nuevo in campos:
+            if (anterior or '') != (nuevo or ''):
+                HistorialCambio.objects.create(
+                    usuario=usuario,
+                    indicador=tablero,
+                    campo=campo,
+                    valor_anterior=anterior or '',
+                    valor_nuevo=nuevo or ''
+                )
+
+        # HistorialAvance general
+        if (antiguo_avance != nuevo_avance) or (antigua_observacion != nueva_observacion):
             HistorialAvance.objects.create(
                 tablero=tablero,
                 usuario=usuario,
-                avance_anterior=antiguo or '',
-                avance_nuevo=nuevo or '',
+                avance_anterior=antiguo_avance or '',
+                avance_nuevo=nuevo_avance or '',
                 observacion=nueva_observacion or ''
             )
 
         messages.success(request, 'Avance actualizado correctamente.')
         return redirect('lista_tablero')
 
-    return render(request, 'planilla/editar_avance.html', {'form': form, 'tablero': tablero})
+    return render(request, 'planilla/editar_avance.html', {
+        'form': form,
+        'tablero': tablero
+    })
 
 @login_required
 def gestionar_perfiles(request):
@@ -100,7 +111,10 @@ def gestionar_perfiles(request):
             messages.success(request, "Usuario creado correctamente.")
             return redirect('gestionar_perfiles')
 
-    return render(request, 'planilla/gestionar_perfiles.html', {'perfiles': perfiles, 'form': form})
+    return render(request, 'planilla/gestionar_perfiles.html', {
+        'perfiles': perfiles,
+        'form': form
+    })
 
 @login_required
 def admin_tablero(request):
@@ -115,8 +129,8 @@ def exportar_excel(request):
     writer.writerow(['Eje', 'Objetivo', 'Indicador', 'Meta', 'Avance', 'Nivel', 'Acción'])
 
     for t in Tablero.objects.all().order_by('orden'):
-        writer.writerow([t.eje_estrategico, t.objetivo_estrategico, t.indicador, t.meta_2025, t.avance, t.nivel, t.accion])
-
+        writer.writerow([t.eje_estrategico, t.objetivo_estrategico, t.indicador,
+                         t.meta_2025, t.avance, t.nivel, t.accion])
     return response
 
 @login_required
