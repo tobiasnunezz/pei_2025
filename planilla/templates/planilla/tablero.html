@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-  /* CAMBIO: Ajustes de fuente y padding para mayor visibilidad sin scroll */
   .table th,
   .table td {
     font-size: 13px;
     padding: 4px 6px;
     vertical-align: middle;
-    white-space: normal; /* CAMBIO: permite el salto de línea en celdas largas */
+    white-space: normal;
   }
 
   .badge {
@@ -29,7 +28,7 @@
   }
 </style>
 
-<div class="container-fluid mt-4"> <!-- CAMBIO: de container a container-fluid -->
+<div class="container-fluid mt-4">
   <h2 class="mb-4">📊 Tablero de Control</h2>
 
   {% if es_admin %}
@@ -57,6 +56,7 @@
           <th>ACCIÓN</th>
           <th>RESPONSABLE</th>
           <th>OBSERVACIÓN</th>
+          <th>EVIDENCIA</th> <!-- NUEVA COLUMNA -->
           <th>EDITAR</th>
           {% if es_admin %}
             <th>HISTORIAL</th>
@@ -98,6 +98,13 @@
                 <td>{{ item.responsable|default_if_none:"" }}</td>
                 <td>{{ item.observacion|default_if_none:"" }}</td>
                 <td>
+                  {% if item.evidencia %}
+                    <a href="{{ item.evidencia.url }}" target="_blank">📎</a>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
                   <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                 </td>
                 {% if es_admin %}
@@ -111,7 +118,7 @@
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="12">No hay datos disponibles.</td>
+            <td colspan="13">No hay datos disponibles.</td>
           </tr>
         {% endfor %}
       </tbody>
