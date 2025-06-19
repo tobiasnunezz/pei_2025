@@ -10,7 +10,7 @@ import csv
 from .models import Tablero, HistorialCambio, PerfilUsuario, HistorialAvance
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
 
-logger = logging.getLogger(__name__)  # 📌 Logger para verificar el usuario y errores
+logger = logging.getLogger(__name__)
 
 ORDEN_EJES = [
     "Desarrollo y Fomento del Sector",
@@ -61,29 +61,59 @@ def editar_avance(request, id):
         form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
-        antiguo = tablero.avance
-        observacion_anterior = tablero.observacion
-        nuevo = form.cleaned_data['avance']
-        nueva_observacion = form.cleaned_data.get('observacion')
+        antiguo_avance = tablero.avance
+        antigua_obs = tablero.observacion
+        antigua_evidencia = tablero.evidencia.name if tablero.evidencia else ""
+
+        nuevo_avance = form.cleaned_data.get('avance')
+        nueva_obs = form.cleaned_data.get('observacion')
+        nueva_evidencia = form.cleaned_data.get('evidencia')
 
         form.save()
 
-        if antiguo != nuevo or observacion_anterior != nueva_observacion:
-            logger.info(f"✅ Registro de cambio por usuario: {usuario.username}")
+        hubo_cambio = False
+
+        if antiguo_avance != nuevo_avance:
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
                 campo='avance',
-                valor_anterior=antiguo or '',
-                valor_nuevo=nuevo or ''
+                valor_anterior=antiguo_avance or '',
+                valor_nuevo=nuevo_avance or ''
             )
+            hubo_cambio = True
+
+        if antigua_obs != nueva_obs:
+            HistorialCambio.objects.create(
+                usuario=usuario,
+                indicador=tablero,
+                campo='observacion',
+                valor_anterior=antigua_obs or '',
+                valor_nuevo=nueva_obs or ''
+            )
+            hubo_cambio = True
+
+        if nueva_evidencia:
+            nueva_evidencia_nombre = nueva_evidencia.name
+            if antigua_evidencia != nueva_evidencia_nombre:
+                HistorialCambio.objects.create(
+                    usuario=usuario,
+                    indicador=tablero,
+                    campo='evidencia',
+                    valor_anterior=antigua_evidencia or '',
+                    valor_nuevo=nueva_evidencia_nombre or ''
+                )
+                hubo_cambio = True
+
+        if hubo_cambio:
             HistorialAvance.objects.create(
                 tablero=tablero,
                 usuario=usuario,
-                avance_anterior=antiguo or '',
-                avance_nuevo=nuevo or '',
-                observacion=nueva_observacion or ''
+                avance_anterior=antiguo_avance or '',
+                avance_nuevo=nuevo_avance or '',
+                observacion=nueva_obs or ''
             )
+            logger.info(f"✅ Cambio registrado por: {usuario.username}")
 
         messages.success(request, 'Avance actualizado correctamente.')
         return redirect('lista_tablero')
