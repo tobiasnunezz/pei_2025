@@ -1,52 +1,69 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-  <h2 class="mb-4">🕘 Historial de Cambios</h2>
+  <h4>📜 Historial de cambios para: <strong>{{ tablero.indicador }}</strong></h4>
 
-  <h4>📍 Indicador:</h4>
-  <p class="fw-bold">{{ tablero.indicador }}</p>
+  {% if historial or historial_avances %}
+    <h5 class="mt-4">🕓 Cambios Técnicos Registrados</h5>
+    {% if historial %}
+    <table class="table table-sm table-bordered mt-3">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Campo</th>
+          <th>Valor anterior</th>
+          <th>Valor nuevo</th>
+          <th>Usuario</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cambio in historial %}
+        <tr>
+          <td>{{ cambio.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ cambio.campo }}</td>
+          <td>{{ cambio.valor_anterior }}</td>
+          <td>{{ cambio.valor_nuevo }}</td>
+          <td>{{ cambio.usuario.username }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No se registraron cambios técnicos.</p>
+    {% endif %}
 
-  <div class="row">
-    <div class="col-md-6">
-      <h5>📜 Cambios de campos</h5>
-      {% if historial %}
-        <ul class="list-group mb-4">
-          {% for cambio in historial %}
-            <li class="list-group-item">
-              <strong>{{ cambio.fecha|date:"Y-m-d H:i" }}</strong> – 
-              {{ cambio.usuario }} modificó <strong>{{ cambio.campo }}</strong>: 
-              <em>{{ cambio.valor_anterior }}</em> → <em>{{ cambio.valor_nuevo }}</em>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No hay cambios registrados en campos.</p>
-      {% endif %}
-    </div>
+    <h5 class="mt-4">✍️ Modificaciones de Avance / Observación</h5>
+    {% if historial_avances %}
+    <table class="table table-sm table-bordered mt-3">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Avance anterior</th>
+          <th>Avance nuevo</th>
+          <th>Observación</th>
+          <th>Usuario</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for registro in historial_avances %}
+        <tr>
+          <td>{{ registro.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ registro.avance_anterior }}</td>
+          <td>{{ registro.avance_nuevo }}</td>
+          <td>{{ registro.observacion|default:"-" }}</td>
+          <td>{{ registro.usuario.username }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No se registraron modificaciones de avance u observación.</p>
+    {% endif %}
 
-    <div class="col-md-6">
-      <h5>📈 Cambios de Avance</h5>
-      {% if historial_avances %}
-        <ul class="list-group">
-          {% for ha in historial_avances %}
-            <li class="list-group-item">
-              <strong>{{ ha.fecha|date:"Y-m-d H:i" }}</strong> – 
-              {{ ha.usuario }} cambió avance: 
-              <em>{{ ha.avance_anterior }}</em> → <em>{{ ha.avance_nuevo }}</em>
-              {% if ha.observacion %}
-                <br><small>📝 Observación: {{ ha.observacion }}</small>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No hay registros de avance.</p>
-      {% endif %}
-    </div>
-  </div>
+  {% else %}
+    <p class="text-muted mt-4">No hay cambios registrados para este indicador.</p>
+  {% endif %}
 
-  <div class="mt-3">
-    <a href="{% url 'lista_tablero' %}" class="btn btn-secondary">↩️ Volver</a>
-  </div>
+  <a href="{% url 'lista_tablero' %}" class="btn btn-secondary mt-3">⬅️ Volver</a>
 </div>
 {% endblock %}
