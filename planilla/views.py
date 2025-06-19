@@ -54,11 +54,11 @@ def editar_avance(request, id):
         return redirect('lista_tablero')
 
     if usuario.is_staff:
-        form = AvanceForm(request.POST or None, instance=tablero)
+        form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
     else:
         if tablero.responsable != usuario.perfilusuario.responsable:
             return redirect('lista_tablero')
-        form = AvanceForm(request.POST or None, instance=tablero)
+        form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
         antiguo = tablero.avance
