@@ -8,6 +8,8 @@ from django.template.loader import get_template
 from django.utils.html import strip_tags
 from collections import defaultdict
 import csv
+import os
+from django.conf import settings
 
 from weasyprint import HTML, CSS
 
@@ -200,8 +202,11 @@ def exportar_pdf(request):
         'es_admin': True
     })
 
+    css_path = os.path.join(settings.BASE_DIR, 'static/css/pdf_tablero.css')
+    css = CSS(filename=css_path)
+
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
-    pdf = html.write_pdf()
+    pdf = html.write_pdf(stylesheets=[css])
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="tablero.pdf"'
