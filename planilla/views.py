@@ -4,8 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.timezone import now
+from django.template.loader import get_template
+from django.utils.html import strip_tags
 from collections import defaultdict
 import csv
+
+from weasyprint import HTML, CSS
 
 from .models import Tablero, HistorialCambio, PerfilUsuario, HistorialAvance
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
@@ -76,6 +80,11 @@ def editar_avance(request, id):
         form.save()
         logger.debug("✅ form.save() ejecutado correctamente para tablero id=%s", tablero.id)
 
+        logger.debug("📋 Comparando datos para detectar cambios...")
+        logger.debug("Avance anterior: %s / nuevo: %s", antiguo_avance, nuevo_avance)
+        logger.debug("Obs anterior: %s / nueva: %s", antigua_obs, nueva_obs)
+        logger.debug("Evidencia anterior: %s / nueva: %s", antigua_evidencia, nueva_evidencia)
+
         hubo_cambio = False
 
         if antiguo_avance != nuevo_avance:
@@ -87,7 +96,6 @@ def editar_avance(request, id):
                 valor_anterior=antiguo_avance or '',
                 valor_nuevo=nuevo_avance or ''
             )
-            logger.debug("👤 Registrado avance con usuario.id=%s, username=%s", usuario.id, usuario.username)
             hubo_cambio = True
 
         if antigua_obs != nueva_obs:
@@ -99,7 +107,6 @@ def editar_avance(request, id):
                 valor_anterior=antigua_obs or '',
                 valor_nuevo=nueva_obs or ''
             )
-            logger.debug("👤 Registrado observación con usuario.id=%s, username=%s", usuario.id, usuario.username)
             hubo_cambio = True
 
         if nueva_evidencia:
@@ -113,19 +120,20 @@ def editar_avance(request, id):
                     valor_anterior=antigua_evidencia or '',
                     valor_nuevo=nueva_evidencia_nombre or ''
                 )
-                logger.debug("👤 Registrado evidencia con usuario.id=%s, username=%s", usuario.id, usuario.username)
                 hubo_cambio = True
 
         if hubo_cambio:
-            HistorialAvance.objects.create(
-                tablero=tablero,
-                usuario=usuario,
-                avance_anterior=antiguo_avance or '',
-                avance_nuevo=nuevo_avance or '',
-                observacion=nueva_obs or ''
-            )
-            logger.debug("🗂️ Registrado en HistorialAvance con usuario.id=%s, username=%s", usuario.id, usuario.username)
-            logger.info(f"✅ Cambio registrado por: {usuario.username}")
+            try:
+                HistorialAvance.objects.create(
+                    tablero=tablero,
+                    usuario=usuario,
+                    avance_anterior=antiguo_avance or '',
+                    avance_nuevo=nuevo_avance or '',
+                    observacion=nueva_obs or ''
+                )
+                logger.info(f"✅ Cambio registrado por: {usuario.username}")
+            except Exception as e:
+                logger.error("❌ Error al guardar en HistorialAvance: %s", str(e))
 
         messages.success(request, 'Avance actualizado correctamente.')
         return redirect('lista_tablero')
@@ -153,22 +161,51 @@ def admin_tablero(request):
 
 @login_required
 def exportar_excel(request):
+    if not request.user.is_staff:
+        return HttpResponse("No autorizado", status=403)
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="tablero.csv"'
     writer = csv.writer(response)
-    writer.writerow(['Eje', 'Objetivo', 'Indicador', 'Meta', 'Avance', 'Nivel', 'Acción'])
+    writer.writerow(['Eje', 'Objetivo', 'Indicador', 'Meta', 'Avance', 'Nivel', 'Acción', 'Responsable', 'Observación'])
 
     for t in Tablero.objects.all().order_by('orden'):
         writer.writerow([
-            t.eje_estrategico, t.objetivo_estrategico, t.indicador,
-            t.meta_2025, t.avance, t.nivel, t.accion
+            t.eje_estrategico, t.objetivo_estrategico, strip_tags(t.indicador),
+            t.meta_2025, t.avance, t.nivel, t.accion, t.responsable, t.observacion
         ])
 
     return response
 
 @login_required
 def exportar_pdf(request):
-    return HttpResponse("Exportar a PDF aún no implementado")
+    if not request.user.is_staff:
+        return HttpResponse("No autorizado", status=403)
+
+    tableros = Tablero.objects.all().order_by('orden')
+    agrupado = defaultdict(lambda: defaultdict(list))
+    for t in tableros:
+        eje = (t.eje_estrategico or "").strip()
+        objetivo = (t.objetivo_estrategico or "").strip()
+        agrupado[eje][objetivo].append(t)
+
+    agrupado_ordenado = {}
+    for eje in ORDEN_EJES:
+        if eje in agrupado:
+            agrupado_ordenado[eje] = dict(sorted(agrupado[eje].items()))
+
+    template = get_template('planilla/tablero_pdf.html')
+    html_string = template.render({
+        'agrupado': agrupado_ordenado,
+        'es_admin': True
+    })
+
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="tablero.pdf"'
+    return response
 
 @login_required
 def ver_historial(request, id):
