@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import re  # Necesario para limpiar valores numéricos
 
 # Tipos de meta posibles
 TIPO_META_CHOICES = [
@@ -25,29 +26,62 @@ class Tablero(models.Model):
     orden = models.PositiveIntegerField(default=0)
     observacion = models.TextField(blank=True, null=True)
     evidencia = models.FileField(upload_to='evidencias/', blank=True, null=True)
-    
+
     def calcular_nivel_y_accion(self):
         avance = (self.avance or "").strip().lower()
+        tipo_meta = self.tipo_meta
+
         try:
-            valor = float(avance)
-            if valor == 0:
-                self.nivel = "No existe avance"
-                self.accion = "Correctiva"
-            elif valor < 25:
-                self.nivel = "Bajo"
-                self.accion = "Correctiva"
-            elif valor < 50:
-                self.nivel = "Aceptable"
-                self.accion = "Preventiva"
-            elif valor < 75:
-                self.nivel = "Medio"
-                self.accion = "Preventiva"
-            elif valor < 90:
-                self.nivel = "Satisfactorio"
-                self.accion = "Analizar tendencias"
-            else:
-                self.nivel = "Óptimo"
-                self.accion = "Analizar tendencias"
+            avance_val = float(avance.replace(',', '.'))
+
+            if tipo_meta == 'porcentaje':
+                if avance_val == 0:
+                    self.nivel = "No existe avance"
+                    self.accion = "Correctiva"
+                elif avance_val < 25:
+                    self.nivel = "Bajo"
+                    self.accion = "Correctiva"
+                elif avance_val < 50:
+                    self.nivel = "Aceptable"
+                    self.accion = "Preventiva"
+                elif avance_val < 75:
+                    self.nivel = "Medio"
+                    self.accion = "Preventiva"
+                elif avance_val < 90:
+                    self.nivel = "Satisfactorio"
+                    self.accion = "Analizar tendencias"
+                else:
+                    self.nivel = "Óptimo"
+                    self.accion = "Analizar tendencias"
+
+            elif tipo_meta == 'numero':
+                meta_limpia = re.sub(r'[^\d.,]', '', self.meta_2025 or '').replace(',', '.')
+                try:
+                    meta_val = float(meta_limpia)
+                    if meta_val > 0:
+                        porcentaje = (avance_val / meta_val) * 100
+                        if porcentaje == 0:
+                            self.nivel = "No existe avance"
+                            self.accion = "Correctiva"
+                        elif porcentaje < 50:
+                            self.nivel = "Bajo"
+                            self.accion = "Correctiva"
+                        elif 50 <= porcentaje < 100:
+                            self.nivel = "Medio"
+                            self.accion = "Preventiva"
+                        elif porcentaje == 100:
+                            self.nivel = "Óptimo"
+                            self.accion = "Analizar tendencias"
+                        else:
+                            self.nivel = "Satisfactorio"
+                            self.accion = "Analizar tendencias"
+                    else:
+                        self.nivel = ""
+                        self.accion = ""
+                except ValueError:
+                    self.nivel = ""
+                    self.accion = ""
+
         except ValueError:
             if avance in ["no iniciado"]:
                 self.nivel = "No existe avance"
