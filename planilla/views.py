@@ -74,6 +74,7 @@ def editar_avance(request, id):
         hubo_cambio = False
 
         if antiguo_avance != nuevo_avance:
+            logger.debug(f"Cambio en avance: {antiguo_avance} -> {nuevo_avance}")
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
@@ -84,6 +85,7 @@ def editar_avance(request, id):
             hubo_cambio = True
 
         if antigua_obs != nueva_obs:
+            logger.debug(f"Cambio en observación: {antigua_obs} -> {nueva_obs}")
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
@@ -96,6 +98,7 @@ def editar_avance(request, id):
         if nueva_evidencia:
             nueva_evidencia_nombre = nueva_evidencia.name
             if antigua_evidencia != nueva_evidencia_nombre:
+                logger.debug(f"Cambio en evidencia: {antigua_evidencia} -> {nueva_evidencia_nombre}")
                 HistorialCambio.objects.create(
                     usuario=usuario,
                     indicador=tablero,
@@ -106,6 +109,7 @@ def editar_avance(request, id):
                 hubo_cambio = True
 
         if hubo_cambio:
+            logger.debug(f"Registrando en HistorialAvance: avance {antiguo_avance} -> {nuevo_avance}, observación: {nueva_obs}")
             HistorialAvance.objects.create(
                 tablero=tablero,
                 usuario=usuario,
