@@ -1,0 +1,43 @@
+body {
+    font-family: sans-serif;
+    font-size: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #999;
+    padding: 4px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.nivel-bajo {
+    background-color: #f28b82;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+}
+
+.nivel-medio {
+    background-color: #fbbc04;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+}
+
+.nivel-alto {
+    background-color: #34a853;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Podés agregar más clases según tus necesidades */
