@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
+from django.utils.timezone import now
 from collections import defaultdict
 import csv
 
@@ -52,9 +53,16 @@ def editar_avance(request, id):
         logger.warning("❌ Usuario no autenticado")
         return redirect('lista_tablero')
 
-    form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
+    if usuario.is_staff:
+        form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
+    else:
+        if tablero.responsable != usuario.perfilusuario.responsable:
+            return redirect('lista_tablero')
+        form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
+        logger.debug("🟢 Entró en form.is_valid() para el usuario %s", usuario.username)
+
         antiguo_avance = tablero.avance
         antigua_obs = tablero.observacion
         antigua_evidencia = tablero.evidencia.name if tablero.evidencia else ""
@@ -63,14 +71,15 @@ def editar_avance(request, id):
         nueva_obs = form.cleaned_data.get('observacion')
         nueva_evidencia = form.cleaned_data.get('evidencia')
 
-        logger.debug(f"🔍 Datos antiguos: avance={antiguo_avance}, obs={antigua_obs}, evidencia={antigua_evidencia}")
-        logger.debug(f"🔄 Datos nuevos: avance={nuevo_avance}, obs={nueva_obs}, evidencia={getattr(nueva_evidencia, 'name', None)}")
+        logger.debug("📝 Datos limpios: avance=%s, observacion=%s, evidencia=%s", nuevo_avance, nueva_obs, nueva_evidencia)
 
         form.save()
+        logger.debug("✅ form.save() ejecutado correctamente para tablero id=%s", tablero.id)
 
         hubo_cambio = False
 
         if antiguo_avance != nuevo_avance:
+            logger.debug("📌 Cambio en avance detectado")
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
@@ -78,10 +87,11 @@ def editar_avance(request, id):
                 valor_anterior=antiguo_avance or '',
                 valor_nuevo=nuevo_avance or ''
             )
-            logger.debug("📌 HistorialCambio guardado: avance")
+            logger.debug("👤 Registrado avance con usuario.id=%s, username=%s", usuario.id, usuario.username)
             hubo_cambio = True
 
         if antigua_obs != nueva_obs:
+            logger.debug("📌 Cambio en observación detectado")
             HistorialCambio.objects.create(
                 usuario=usuario,
                 indicador=tablero,
@@ -89,12 +99,13 @@ def editar_avance(request, id):
                 valor_anterior=antigua_obs or '',
                 valor_nuevo=nueva_obs or ''
             )
-            logger.debug("📌 HistorialCambio guardado: observacion")
+            logger.debug("👤 Registrado observación con usuario.id=%s, username=%s", usuario.id, usuario.username)
             hubo_cambio = True
 
         if nueva_evidencia:
             nueva_evidencia_nombre = nueva_evidencia.name
             if antigua_evidencia != nueva_evidencia_nombre:
+                logger.debug("📌 Cambio en evidencia detectado")
                 HistorialCambio.objects.create(
                     usuario=usuario,
                     indicador=tablero,
@@ -102,7 +113,7 @@ def editar_avance(request, id):
                     valor_anterior=antigua_evidencia or '',
                     valor_nuevo=nueva_evidencia_nombre or ''
                 )
-                logger.debug("📌 HistorialCambio guardado: evidencia")
+                logger.debug("👤 Registrado evidencia con usuario.id=%s, username=%s", usuario.id, usuario.username)
                 hubo_cambio = True
 
         if hubo_cambio:
@@ -113,7 +124,8 @@ def editar_avance(request, id):
                 avance_nuevo=nuevo_avance or '',
                 observacion=nueva_obs or ''
             )
-            logger.debug("✅ HistorialAvance guardado correctamente")
+            logger.debug("🗂️ Registrado en HistorialAvance con usuario.id=%s, username=%s", usuario.id, usuario.username)
+            logger.info(f"✅ Cambio registrado por: {usuario.username}")
 
         messages.success(request, 'Avance actualizado correctamente.')
         return redirect('lista_tablero')
