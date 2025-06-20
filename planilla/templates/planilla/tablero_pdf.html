@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero Estratégico - PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: avoid;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        h2 {
+            margin-top: 30px;
+            background-color: #e0e0e0;
+            padding: 5px;
+        }
+        h3 {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding: 3px;
+            background-color: #f9f9f9;
+        }
+        .nivel {
+            font-weight: bold;
+        }
+        .bajo { color: red; }
+        .medio { color: orange; }
+        .alto { color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Tablero de Control</h1>
+    {% for eje, objetivos in agrupado.items %}
+        <h2>{{ eje }}</h2>
+        {% for objetivo, indicadores in objetivos.items %}
+            <h3>{{ objetivo }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Indicador</th>
+                        <th>Meta 2025</th>
+                        <th>Tipo de Meta</th>
+                        <th>Avance</th>
+                        <th>Nivel</th>
+                        <th>Acción</th>
+                        <th>Responsable</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for indicador in indicadores %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ indicador.indicador }}</td>
+                            <td>{{ indicador.meta_2025 }}</td>
+                            <td>{{ indicador.tipo_meta }}</td>
+                            <td>{{ indicador.avance }}</td>
+                            <td class="nivel {% if indicador.nivel == 'Bajo' %}bajo{% elif indicador.nivel == 'Medio' %}medio{% elif indicador.nivel == 'Alto' %}alto{% endif %}">
+                                {{ indicador.nivel }}
+                            </td>
+                            <td>{{ indicador.accion }}</td>
+                            <td>{{ indicador.responsable }}</td>
+                            <td>{{ indicador.observacion }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% endfor %}
+
+</body>
+</html>
