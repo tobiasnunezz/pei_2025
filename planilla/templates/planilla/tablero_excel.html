@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero Estratégico - Excel</title>
+</head>
+<body>
+    <table border="1">
+        <thead>
+            <tr>
+                <th colspan="9"><strong>Tablero Estratégico - Exportación a Excel</strong></th>
+            </tr>
+            <tr>
+                <th>N°</th>
+                <th>Indicador</th>
+                <th>Meta 2025</th>
+                <th>Tipo de Meta</th>
+                <th>Avance</th>
+                <th>Nivel</th>
+                <th>Acción</th>
+                <th>Responsable</th>
+                <th>Observación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eje, objetivos in agrupado.items %}
+                <tr style="background-color: #d9d9d9;">
+                    <td colspan="9"><strong>{{ eje }}</strong></td>
+                </tr>
+                {% for objetivo, indicadores in objetivos.items %}
+                    <tr style="background-color: #f2f2f2;">
+                        <td colspan="9"><em>{{ objetivo }}</em></td>
+                    </tr>
+                    {% for indicador in indicadores %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ indicador.indicador }}</td>
+                            <td>{{ indicador.meta_2025 }}</td>
+                            <td>{{ indicador.tipo_meta }}</td>
+                            <td>{{ indicador.avance }}</td>
+                            <td>{{ indicador.nivel }}</td>
+                            <td>{{ indicador.accion }}</td>
+                            <td>{{ indicador.responsable }}</td>
+                            <td>{{ indicador.observacion }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
