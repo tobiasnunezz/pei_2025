@@ -1,43 +1,103 @@
 body {
     font-family: sans-serif;
     font-size: 10px;
+    margin: 20px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    page-break-inside: avoid;
 }
 
 th, td {
     border: 1px solid #999;
     padding: 4px;
     text-align: left;
+    vertical-align: top;
 }
 
 th {
     background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center;
+}
+
+h1, h2, h3 {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+h1 {
+    font-size: 16px;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 14px;
+    background-color: #e0e0e0;
+    padding: 6px;
+}
+
+h3 {
+    font-size: 12px;
+    background-color: #f9f9f9;
+    padding: 4px;
+}
+
+/* Niveles de semáforo visual según tabla enviada */
+
+.nivel-sin-avance {
+    background-color: #ff0000; /* rojo */
+    color: white;
+    font-weight: bold;
+    text-align: center;
 }
 
 .nivel-bajo {
-    background-color: #f28b82;
+    background-color: #ff9900; /* naranja */
+    color: black;
+    font-weight: bold;
+    text-align: center;
+}
+
+.nivel-aceptable {
+    background-color: #ffff00; /* amarillo */
     color: black;
     font-weight: bold;
     text-align: center;
 }
 
 .nivel-medio {
-    background-color: #fbbc04;
+    background-color: #99cc00; /* verde lima */
     color: black;
     font-weight: bold;
     text-align: center;
 }
 
-.nivel-alto {
-    background-color: #34a853;
+.nivel-satisfactorio {
+    background-color: #00cc99; /* verde agua */
+    color: black;
+    font-weight: bold;
+    text-align: center;
+}
+
+.nivel-optimo {
+    background-color: #00cc66; /* verde fuerte */
     color: white;
     font-weight: bold;
     text-align: center;
 }
 
-/* Podés agregar más clases según tus necesidades */
+/* Pie de página */
+footer {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: right;
+    font-size: 8px;
+    color: #666;
+    padding-right: 20px;
+}

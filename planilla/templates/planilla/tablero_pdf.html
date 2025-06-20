@@ -26,6 +26,23 @@
             margin-right: 10px;
         }
 
+        h1 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            background-color: #e0e0e0;
+            padding: 5px;
+            font-size: 15px;
+        }
+
+        h3 {
+            background-color: #f2f2f2;
+            padding: 3px;
+            font-size: 13px;
+        }
+
         footer {
             position: running(footer);
             text-align: center;
@@ -33,18 +50,13 @@
             color: #888;
             margin-top: 30px;
         }
-
-        h1 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
 
 <header>
     <img src="{{ request.build_absolute_uri }}/static/img/conatel_logo.png" alt="Logo CONATEL">
-    <h1>Tablero de Control</h1>
+    <h1>Tablero Estratégico - Exportación PDF</h1>
 </header>
 
 {% for eje, objetivos in agrupado.items %}
@@ -71,7 +83,16 @@
                         <td>{{ indicador.indicador }}</td>
                         <td>{{ indicador.meta_2025 }}</td>
                         <td>{{ indicador.avance }}</td>
-                        <td class="{% if indicador.nivel == 'Bajo' %}nivel-bajo{% elif indicador.nivel == 'Medio' %}nivel-medio{% elif indicador.nivel == 'Alto' %}nivel-alto{% endif %}">
+                        <td class="
+                            {% if indicador.nivel == 'Bajo' %}nivel-bajo
+                            {% elif indicador.nivel == 'Medio' %}nivel-medio
+                            {% elif indicador.nivel == 'Alto' %}nivel-alto
+                            {% elif indicador.nivel == 'Óptimo' %}nivel-optimo
+                            {% elif indicador.nivel == 'Satisfactorio' %}nivel-satisfactorio
+                            {% elif indicador.nivel == 'Aceptable' %}nivel-aceptable
+                            {% elif indicador.nivel == 'No existe avance' %}nivel-sin-avance
+                            {% endif %}
+                        ">
                             {{ indicador.nivel }}
                         </td>
                         <td>{{ indicador.accion }}</td>
