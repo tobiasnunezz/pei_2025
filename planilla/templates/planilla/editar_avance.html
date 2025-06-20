@@ -7,7 +7,7 @@
     <div class="card-body">
       <p><strong>Indicador:</strong> {{ tablero.indicador }}</p>
 
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="mb-3">
@@ -23,6 +23,16 @@
           {{ form.observacion }}
           {% if form.observacion.errors %}
             <div class="text-danger">{{ form.observacion.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.evidencia.id_for_label }}" class="form-label">📎 Evidencia</label>
+          {{ form.evidencia }}
+          {% if tablero.evidencia %}
+            <div class="mt-2">
+              Archivo actual: <a href="{{ tablero.evidencia.url }}" target="_blank">Ver/Descargar</a>
+            </div>
           {% endif %}
         </div>
 

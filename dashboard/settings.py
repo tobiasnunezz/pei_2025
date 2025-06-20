@@ -100,7 +100,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 # 🛠️ Tipo de clave por defecto
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 🪵 Logging para depuración
+# 🪵 Logging para depuración en /var/log/dashboard/
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -118,7 +118,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'filename': '/var/log/dashboard/debug.log',
             'formatter': 'verbose',
         },
     },
