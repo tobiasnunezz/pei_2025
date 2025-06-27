@@ -1,0 +1,62 @@
+[33m5f46eb9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mversion-estable[m[33m, [m[1;33mtag: [m[1;33mv1.2-historial-avances-observacion-evidencia[m[33m)[m ✅ Versión funcional: historial mensual por avance, observación y evidencia
+[33m2a771dd[m[33m ([m[1;33mtag: [m[1;33mv1.1-fix-metas-num[m[33m, [m[1;33mtag: [m[1;33mv-estable-historial[m[33m)[m fix: cálculo correcto de nivel y acción para metas numéricas en Tablero
+[33md71aafd[m Titulo correcto del pdf exportado
+[33m2da1ee0[m[33m ([m[1;33mtag: [m[1;33mv1.1[m[33m)[m ✅ Mejora completa del diseño PDF y ajustes de plantilla: logotipo, colores por nivel, pie de página, paginación y ajustes en edición de avance
+[33m1db48d7[m 📄 Nuevo: plantilla base tablero_excel.html agregada (en desarrollo)
+[33me08445f[m 🎨 Mejora del diseño PDF: colores de niveles, logotipo, pie de página, paginación y eliminación de columna 'Tipo de Meta'
+[33m976f6c6[m 🎨 Mejora visual del PDF: logo CONATEL, pie con usuario y fecha, numeración de páginas, y eliminación de columna 'Tipo de Meta'
+[33mdf343db[m 💾 Versión base estable del sistema con exportación PDF funcional antes de aplicar mejoras visuales
+[33md21b1ed[m 🔒 Estado base actual de tablero_pdf.html antes de aplicar estilos PDF con colores
+[33m8147d83[m 🎨 Aplicar CSS personalizado a exportación PDF en views.py
+[33m7cf66a3[m 💾 Backup antes de aplicar CSS al PDF exportado desde views.py
+[33m73288f9[m[33m ([m[1;33mtag: [m[1;33mhistorial-previo-ok[m[33m)[m Versión estable antes de agregar depuración para HistorialAvance
+[33me9cbec2[m[33m ([m[1;33mtag: [m[1;33mdebug-historial[m[33m)[m Agregado logger.debug para depurar historial de avance, observación y evidencia
+[33md79fb39[m[33m ([m[1;33mtag: [m[1;33mhistorial-shell-ok[m[33m)[m Versión funcional con registros en historial desde shell
+[33mc9d2daf[m[33m ([m[1;33mtag: [m[1;33mhistorial-avance-observacion-evidencia[m[33m)[m Historial completo: registra cambios en avance, observación y evidencia
+[33m8e4b1e1[m[33m ([m[1;33mtag: [m[1;33mpermisos-media-ok[m[33m, [m[1;33mtag: [m[1;33mbefore-historial-avance-observacion-evidencia[m[33m)[m Documentado ajuste de permisos para permitir escritura en /media
+[33mfb387f2[m[33m ([m[1;33mtag: [m[1;33mnginx-media-config[m[33m, [m[1;33mtag: [m[1;33mevidencia-final[m[33m)[m Agregado static() para servir archivos multimedia en entorno de desarrollo
+[33m02aa815[m[33m ([m[1;33mtag: [m[1;33mevidencia-settings-media[m[33m)[m Agregada configuración MEDIA_URL y MEDIA_ROOT para servir archivos de evidencia
+[33mf3b2e2a[m[33m ([m[1;33mtag: [m[1;33mevidencia-funcional[m[33m)[m Se agregó manejo de archivos (request.FILES) en la vista editar_avance
+[33m6f7d3f7[m[33m ([m[1;33mtag: [m[1;33mevidencia-visible-tablero[m[33m)[m Agregada columna de evidencia en tablero.html con ícono 📎
+[33mdbe3435[m[33m ([m[1;33mtag: [m[1;33mevidencia-forms-completo[m[33m)[m Agregado campo 'evidencia' al formulario AvanceForm
+[33m4beb131[m[33m ([m[1;33mtag: [m[1;33mevidencia-modelo[m[33m)[m Agregado campo 'evidencia' al modelo Tablero con migración y soporte para archivos
+[33m35e3914[m Agregado psycopg2-binary como dependencia de PostgreSQL
+[33md9a285b[m[33m ([m[1;33mtag: [m[1;33mantes-evidencia[m[33m)[m Respaldo antes de agregar campo 'evidencia' al modelo Tablero
+[33meca5796[m 📝 Registrar correctamente cambios en avance, nivel, acción y observación con historial
+[33m039f2d2[m 💾 Backup antes de mejorar historial de cambios (avance, observación, nivel, acción)
+[33m5da5943[m Versión estable antes de actualizar ver_historial.html
+[33m8c14339[m 🔧 Unificación del formulario AvanceForm para todos los usuarios, adaptado dinámicamente según tipo_meta
+[33m6316b1d[m ✅ AvanceForm ajustado según tipo_meta con ayuda visual y sin conflicto en TableroCompletoForm
+[33m1ffddfd[m 🎯 Mostrar opciones de avance según tipo de meta (porcentaje, número o texto)
+[33m5ca43cf[m 🖊️ Mejora visual en formulario de edición de avance: limpio y funcional
+[33m5a7db05[m ✨ Cálculo automático de Nivel y Acción según Avance en PEI (formulario, modelo y vistas actualizados)
+[33m55d344a[m 🎯 Auto cálculo de Nivel y Acción según Avance en formulario PEI (frontend + backend)
+[33m1c20a27[m ✨ Agregado campo 'Observación' al tablero.html
+[33m1e6b9ce[m ✨ Agregado template historial_cambios.html para mostrar auditoría por indicador
+[33mfd7cebf[m 🐛 Fix: importado HistorialCambio en views.py para evitar error NameError
+[33m0e5ee37[m 👁️‍🗨️ Agregada vista ver_historial para mostrar historial de cambios por indicador (solo staff)
+[33mffd2315[m 👁️‍🗨️ Agregado botón de historial solo visible para staff en el tablero
+[33made7807[m ✅ signals.py actualizado para usar django-crum y registrar historial automáticamente
+[33m90d22be[m �� Backup: versión actual de signals.py antes de implementar historial automático
+[33m8225c4d[m ✅ Registro del modelo HistorialCambio en el admin
+[33m9e75a8e[m 🧠 Agregado modelo HistorialCambio para auditoría de modificaciones
+[33m91280da[m 🔧 Ajuste de STATIC_ROOT para servir archivos con NGINX desde /var/www/dashboard/staticfiles
+[33m6e9130d[m 🎨 Agregado logo de Conatel en la página de inicio de sesión
+[33m516f68e[m ✅ Añadido exportar a Excel y PDF para usuarios staff + vista completa del tablero
+[33m628dc02[m ✅ Migración de campo 'campo' en HistorialCambio con valor por defecto
+[33ma5ff305[m 📜 Agregado modelo HistorialCambio para registrar ediciones
+[33m1e8f367[m 🆕 Agregado exportar a Excel y PDF en el tablero para usuarios staff
+[33m9bfdf98[m ✅ Mejoras en layout base, login/logout y vistas actualizadas
+[33m2a98351[m ✅ Agregado mensaje de bienvenida y botón de logout al layout base
+[33me4a6145[m 🧠 Avance desplegable con autocompletado de Nivel y Acción (admin + usuarios)
+[33m22918e8[m 🔧 Reparada migración rota en campo 'avance'
+[33m3e8b32f[m 🎛 Avance como lista desplegable + cálculo automático de nivel y acción
+[33mf6857aa[m 🧮 Agregado campo orden al modelo Tablero y editable en admin
+[33m5e3c149[m 🎨 Mejora visual del tablero: colores, bordes y formato
+[33m54dd707[m 🔙 Volver a versión anterior del admin sin edición en línea
+[33m127713c[m 📝 Mejora en admin: edición en línea del modelo Tablero
+[33md9088f9[m ✅ Agregado tablero completo al admin para edición
+[33m21e4702[m 💄 Rediseño de tablero.html con agrupación por eje y mejoras visuales
+[33m83fe964[m 🛠️ Fix: permitir vista pública del tablero sin login
+[33ma32c295[m 🔓 Desactivado login temporalmente para ver el tablero sin iniciar sesión
+[33m7da5e29[m Versión inicial del proyecto Django con entorno virtual excluido
