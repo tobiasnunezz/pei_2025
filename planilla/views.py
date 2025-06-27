@@ -13,7 +13,7 @@ from django.conf import settings
 
 from weasyprint import HTML, CSS
 
-from .models import Tablero, HistorialCambio, PerfilUsuario, HistorialAvance
+from .models import Tablero, HistorialAvance, PerfilUsuario
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
 
 logger = logging.getLogger(__name__)
@@ -69,10 +69,6 @@ def editar_avance(request, id):
     if request.method == 'POST' and form.is_valid():
         logger.debug("🟢 Entró en form.is_valid() para el usuario %s", usuario.username)
 
-        antiguo_avance = tablero.avance
-        antigua_obs = tablero.observacion
-        antigua_evidencia = tablero.evidencia.name if tablero.evidencia else ""
-
         nuevo_avance = form.cleaned_data.get('avance')
         nueva_obs = form.cleaned_data.get('observacion')
         nueva_evidencia = form.cleaned_data.get('evidencia')
@@ -82,60 +78,17 @@ def editar_avance(request, id):
         form.save()
         logger.debug("✅ form.save() ejecutado correctamente para tablero id=%s", tablero.id)
 
-        logger.debug("📋 Comparando datos para detectar cambios...")
-        logger.debug("Avance anterior: %s / nuevo: %s", antiguo_avance, nuevo_avance)
-        logger.debug("Obs anterior: %s / nueva: %s", antigua_obs, nueva_obs)
-        logger.debug("Evidencia anterior: %s / nueva: %s", antigua_evidencia, nueva_evidencia)
-
-        hubo_cambio = False
-
-        if antiguo_avance != nuevo_avance:
-            logger.debug("📌 Cambio en avance detectado")
-            HistorialCambio.objects.create(
+        try:
+            HistorialAvance.objects.create(
+                tablero=tablero,
                 usuario=usuario,
-                indicador=tablero,
-                campo='avance',
-                valor_anterior=antiguo_avance or '',
-                valor_nuevo=nuevo_avance or ''
+                avance=nuevo_avance or '',
+                observacion=nueva_obs or '',
+                evidencia=nueva_evidencia if nueva_evidencia else None
             )
-            hubo_cambio = True
-
-        if antigua_obs != nueva_obs:
-            logger.debug("📌 Cambio en observación detectado")
-            HistorialCambio.objects.create(
-                usuario=usuario,
-                indicador=tablero,
-                campo='observacion',
-                valor_anterior=antigua_obs or '',
-                valor_nuevo=nueva_obs or ''
-            )
-            hubo_cambio = True
-
-        if nueva_evidencia:
-            nueva_evidencia_nombre = nueva_evidencia.name
-            if antigua_evidencia != nueva_evidencia_nombre:
-                logger.debug("📌 Cambio en evidencia detectado")
-                HistorialCambio.objects.create(
-                    usuario=usuario,
-                    indicador=tablero,
-                    campo='evidencia',
-                    valor_anterior=antigua_evidencia or '',
-                    valor_nuevo=nueva_evidencia_nombre or ''
-                )
-                hubo_cambio = True
-
-        if hubo_cambio:
-            try:
-                HistorialAvance.objects.create(
-                    tablero=tablero,
-                    usuario=usuario,
-                    avance_anterior=antiguo_avance or '',
-                    avance_nuevo=nuevo_avance or '',
-                    observacion=nueva_obs or ''
-                )
-                logger.info(f"✅ Cambio registrado por: {usuario.username}")
-            except Exception as e:
-                logger.error("❌ Error al guardar en HistorialAvance: %s", str(e))
+            logger.info(f"✅ Registro mensual guardado por: {usuario.username}")
+        except Exception as e:
+            logger.error("❌ Error al guardar en HistorialAvance: %s", str(e))
 
         messages.success(request, 'Avance actualizado correctamente.')
         return redirect('lista_tablero')
@@ -215,10 +168,8 @@ def exportar_pdf(request):
 @login_required
 def ver_historial(request, id):
     tablero = get_object_or_404(Tablero, id=id)
-    historial_cambios = HistorialCambio.objects.filter(indicador=tablero).order_by('-fecha')
     historial_avances = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha')
     return render(request, 'planilla/ver_historial.html', {
         'tablero': tablero,
-        'historial': historial_cambios,
         'historial_avances': historial_avances
     })

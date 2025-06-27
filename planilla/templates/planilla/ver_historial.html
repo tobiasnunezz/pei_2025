@@ -3,44 +3,15 @@
 <div class="container mt-4">
   <h4>📜 Historial de cambios para: <strong>{{ tablero.indicador }}</strong></h4>
 
-  {% if historial or historial_avances %}
-    <h5 class="mt-4">🕓 Cambios Técnicos Registrados</h5>
-    {% if historial %}
+  {% if historial_avances %}
+    <h5 class="mt-4">✍️ Modificaciones de Avances / Observación / Evidencia</h5>
     <table class="table table-sm table-bordered mt-3">
       <thead class="table-light">
         <tr>
           <th>Fecha</th>
-          <th>Campo</th>
-          <th>Valor anterior</th>
-          <th>Valor nuevo</th>
-          <th>Usuario</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for cambio in historial %}
-        <tr>
-          <td>{{ cambio.fecha|date:"d/m/Y H:i" }}</td>
-          <td>{{ cambio.campo }}</td>
-          <td>{{ cambio.valor_anterior }}</td>
-          <td>{{ cambio.valor_nuevo }}</td>
-          <td>{{ cambio.usuario.username }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p class="text-muted">No se registraron cambios técnicos.</p>
-    {% endif %}
-
-    <h5 class="mt-4">✍️ Modificaciones de Avance / Observación</h5>
-    {% if historial_avances %}
-    <table class="table table-sm table-bordered mt-3">
-      <thead class="table-light">
-        <tr>
-          <th>Fecha</th>
-          <th>Avance anterior</th>
-          <th>Avance nuevo</th>
+          <th>Avance</th>
           <th>Observación</th>
+          <th>Evidencia</th>
           <th>Usuario</th>
         </tr>
       </thead>
@@ -48,20 +19,22 @@
         {% for registro in historial_avances %}
         <tr>
           <td>{{ registro.fecha|date:"d/m/Y H:i" }}</td>
-          <td>{{ registro.avance_anterior }}</td>
-          <td>{{ registro.avance_nuevo }}</td>
+          <td>{{ registro.avance }}</td>
           <td>{{ registro.observacion|default:"-" }}</td>
+          <td>
+            {% if registro.evidencia %}
+              <a href="{{ registro.evidencia.url }}" target="_blank">📎 Ver archivo</a>
+            {% else %}
+              -
+            {% endif %}
+          </td>
           <td>{{ registro.usuario.username }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    {% else %}
-    <p class="text-muted">No se registraron modificaciones de avance u observación.</p>
-    {% endif %}
-
   {% else %}
-    <p class="text-muted mt-4">No hay cambios registrados para este indicador.</p>
+    <p class="text-muted mt-4">No hay registros de avance cargados para este indicador.</p>
   {% endif %}
 
   <a href="{% url 'lista_tablero' %}" class="btn btn-secondary mt-3">⬅️ Volver</a>

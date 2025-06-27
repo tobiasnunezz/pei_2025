@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import re  # Necesario para limpiar valores numéricos
+from django.utils import timezone
 
 # Tipos de meta posibles
 TIPO_META_CHOICES = [
@@ -118,12 +119,12 @@ class HistorialCambio(models.Model):
         return f"{self.usuario} cambió {self.campo} en '{self.indicador.indicador}'"
 
 class HistorialAvance(models.Model):
-    tablero = models.ForeignKey(Tablero, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    avance_anterior = models.CharField(max_length=255)
-    avance_nuevo = models.CharField(max_length=255)
+    tablero = models.ForeignKey('Tablero', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    avance = models.CharField(max_length=255, blank=True, null=True)
     observacion = models.TextField(blank=True, null=True)
-    fecha = models.DateTimeField(auto_now_add=True)
+    evidencia = models.FileField(upload_to='historial_evidencias/', blank=True, null=True)
+    fecha = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.tablero.indicador} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
