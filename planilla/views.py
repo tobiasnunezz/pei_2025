@@ -152,7 +152,9 @@ def exportar_pdf(request):
     template = get_template('planilla/tablero_pdf.html')
     html_string = template.render({
         'agrupado': agrupado_ordenado,
-        'es_admin': True
+        'es_admin': True,
+        'now': now(),               # ✅ FECHA Y HORA
+        'user': request.user        # ✅ USUARIO ACTUAL
     })
 
     css_path = os.path.join(settings.BASE_DIR, 'static/css/pdf_tablero.css')

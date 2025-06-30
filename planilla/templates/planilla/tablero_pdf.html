@@ -104,7 +104,8 @@
         </table>
     {% endfor %}
 {% endfor %}
-
+<p><strong>Fecha y hora de generación:</strong> {{ now|date:"d/m/Y H:i" }}</p>
+<p><strong>Usuario:</strong> {{ user.username }}</p>
 <footer>
     Exportado el {{ now|date:"d/m/Y H:i" }} por {{ user.username }}
 </footer>
