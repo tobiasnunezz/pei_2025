@@ -20,6 +20,13 @@
          <a href="{% url 'cambiar_contrasena' %}" class="btn btn-sm btn-outline-secondary ms-2">Cambiar contraseña</a>
         | <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger ms-2">Cerrar sesión</a>
     </div>
+    {% if user.is_staff %}
+    <div class="bg-warning-subtle py-2 px-3 text-end border-bottom">
+        <a href="{% url 'bitacora_accesos' %}" class="btn btn-sm btn-warning fw-semibold">
+            📘 Ver Logs de Accesos
+        </a>
+    </div>
+    {% endif %}
     {% endif %}
 
     <!-- Encabezado -->

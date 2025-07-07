@@ -128,3 +128,19 @@ class HistorialAvance(models.Model):
 
     def __str__(self):
         return f"{self.tablero.indicador} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
+
+class BitacoraAcceso(models.Model):
+    ACCION_CHOICES = [
+        ('login', 'Inicio de sesión'),
+        ('logout', 'Cierre de sesión'),
+        ('password_change', 'Cambio de contraseña'),
+        # Podés agregar más tipos: 'failed_login', etc.
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    ip = models.GenericIPAddressField()
+    accion = models.CharField(max_length=50, choices=ACCION_CHOICES)
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.get_accion_display()} - {self.fecha_hora.strftime('%Y-%m-%d %H:%M:%S')}"

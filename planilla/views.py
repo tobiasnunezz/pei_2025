@@ -1,6 +1,6 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.timezone import now
@@ -13,7 +13,7 @@ from django.conf import settings
 
 from weasyprint import HTML, CSS
 
-from .models import Tablero, HistorialAvance, PerfilUsuario
+from .models import Tablero, HistorialAvance, PerfilUsuario, BitacoraAcceso
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
 
 logger = logging.getLogger(__name__)
@@ -174,4 +174,22 @@ def ver_historial(request, id):
     return render(request, 'planilla/ver_historial.html', {
         'tablero': tablero,
         'historial_avances': historial_avances
+    })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def ver_bitacora_accesos(request):
+    accesos = BitacoraAcceso.objects.all().order_by('-fecha_hora')
+
+    usuario = request.GET.get('usuario')
+    accion = request.GET.get('accion')
+
+    if usuario:
+        accesos = accesos.filter(usuario__username__icontains=usuario)
+    if accion:
+        accesos = accesos.filter(accion=accion)
+
+    return render(request, 'planilla/bitacora_accesos.html', {
+        'accesos': accesos
     })

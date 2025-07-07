@@ -10,6 +10,8 @@ urlpatterns = [
     path('exportar/excel/', views.exportar_excel, name='exportar_excel'),
     path('exportar/pdf/', views.exportar_pdf, name='exportar_pdf'),
     path('historial/<int:id>/', views.ver_historial, name='ver_historial'),
+    path('bitacora/', views.ver_bitacora_accesos, name='bitacora_accesos'),
+
 
     # Rutas para cambiar contraseña
     path('cambiar-contraseña/', auth_views.PasswordChangeView.as_view(

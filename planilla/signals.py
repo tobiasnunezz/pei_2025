@@ -1,9 +1,9 @@
 from django.db.models.signals import post_save, pre_save
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from crum import get_current_user
-from .models import PerfilUsuario, Tablero, HistorialCambio
+from .models import PerfilUsuario, Tablero, HistorialCambio, BitacoraAcceso
 from django.utils.timezone import now
 import logging
 
@@ -50,8 +50,15 @@ def registrar_cambios(sender, instance, **kwargs):
             )
             logger.info(f"📝 Cambio registrado por {usuario.username}: {campo} -> '{anterior}' a '{nuevo}'")
 
-# 🛂 Registrar acceso al sistema (login)
+# 🛂 Registrar login y logout
 @receiver(user_logged_in)
-def registrar_acceso(sender, request, user, **kwargs):
+def registrar_login(sender, request, user, **kwargs):
     ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
     logger_accesos.info(f"Usuario '{user.username}' inició sesión desde IP {ip} a las {now()}")
+    BitacoraAcceso.objects.create(usuario=user, ip=ip, accion='login')
+
+@receiver(user_logged_out)
+def registrar_logout(sender, request, user, **kwargs):
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+    if user.is_authenticated:
+        BitacoraAcceso.objects.create(usuario=user, ip=ip, accion='logout')

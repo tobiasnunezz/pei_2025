@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">🗂️ Logs de Accesos</h3>
+        <a href="{% url 'lista_tablero' %}" class="btn btn-outline-primary">
+            ⬅️ Volver al Tablero
+        </a>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="usuario" placeholder="Buscar por usuario" value="{{ request.GET.usuario }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <select name="accion" class="form-select">
+                <option value="">-- Acción --</option>
+                <option value="login" {% if request.GET.accion == 'login' %}selected{% endif %}>Inicio de sesión</option>
+                <option value="logout" {% if request.GET.accion == 'logout' %}selected{% endif %}>Cierre de sesión</option>
+                <option value="password_change" {% if request.GET.accion == 'password_change' %}selected{% endif %}>Cambio de contraseña</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-primary w-100">🔍 Filtrar</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-hover table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>IP</th>
+                <th>Fecha y hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for acceso in accesos %}
+            <tr>
+                <td>{{ acceso.usuario }}</td>
+                <td>{{ acceso.get_accion_display }}</td>
+                <td>{{ acceso.ip }}</td>
+                <td>{{ acceso.fecha_hora|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center">No se encontraron registros.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
