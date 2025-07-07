@@ -17,6 +17,7 @@
     {% if user.is_authenticated %}
     <div class="bg-light py-2 px-3 text-end border-bottom">
         👋 Bienvenido, <strong>{{ user.username }}</strong>
+         <a href="{% url 'cambiar_contrasena' %}" class="btn btn-sm btn-outline-secondary ms-2">Cambiar contraseña</a>
         | <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger ms-2">Cerrar sesión</a>
     </div>
     {% endif %}
