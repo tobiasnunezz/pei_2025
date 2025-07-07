@@ -124,6 +124,12 @@ LOGGING = {
             'filename': '/var/log/dashboard/debug.log',
             'formatter': 'verbose',
         },
+        'accesos_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/dashboard/accesos.log',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -131,5 +137,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'accesos': {
+            'handlers': ['accesos_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
+
