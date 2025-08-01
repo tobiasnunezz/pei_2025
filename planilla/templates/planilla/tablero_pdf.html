@@ -54,10 +54,12 @@
 </head>
 <body>
 
+{% load static %}
 <header>
-    <img src="{{ request.build_absolute_uri }}/static/img/conatel_logo.png" alt="Logo CONATEL">
-    <h1>Tablero de Control</h1>
+  <img src="file:///opt/dashboard_project/staticfiles/img/conatel_logo.png" alt="Logo CONATEL" width="150">
+  <h1>Tablero de Control</h1>
 </header>
+
 
 {% for eje, objetivos in agrupado.items %}
     <h2>{{ eje }}</h2>

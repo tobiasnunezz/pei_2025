@@ -86,9 +86,9 @@ USE_TZ = True
 
 # 🧾 Archivos estáticos
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/dashboard/staticfiles/'
+STATIC_ROOT = '/opt/dashboard_project/staticfiles'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static"),  # ✅ sin errores
 ]
 
 # 🖼️ Archivos multimedia (Evidencias)

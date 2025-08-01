@@ -2,6 +2,7 @@ import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.utils.timezone import now
 from django.template.loader import get_template
@@ -160,7 +161,7 @@ def exportar_pdf(request):
     css_path = os.path.join(settings.BASE_DIR, 'static/css/pdf_tablero.css')
     css = CSS(filename=css_path)
 
-    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
     pdf = html.write_pdf(stylesheets=[css])
 
     response = HttpResponse(pdf, content_type='application/pdf')
