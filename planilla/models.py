@@ -29,11 +29,12 @@ class Tablero(models.Model):
     evidencia = models.FileField(upload_to='evidencias/', blank=True, null=True)
 
     def calcular_nivel_y_accion(self):
-        avance = (self.avance or "").strip().lower()
+        avance_raw = self.avance
+        avance = str(avance_raw).strip().lower() if isinstance(avance_raw, str) else avance_raw
         tipo_meta = self.tipo_meta
 
         try:
-            avance_val = float(avance.replace(',', '.'))
+            avance_val = float(str(avance).replace(',', '.'))
 
             if tipo_meta == 'porcentaje':
                 if avance_val == 0:
@@ -84,13 +85,13 @@ class Tablero(models.Model):
                     self.accion = ""
 
         except ValueError:
-            if avance in ["no iniciado"]:
+            if isinstance(avance, str) and avance in ["no iniciado"]:
                 self.nivel = "No existe avance"
                 self.accion = "Correctiva"
-            elif avance in ["en proceso"]:
+            elif isinstance(avance, str) and avance in ["en proceso"]:
                 self.nivel = "Medio"
                 self.accion = "Preventiva"
-            elif avance in ["aprobado", "presentado", "aprobada", "presentada"]:
+            elif isinstance(avance, str) and avance in ["aprobado", "presentado", "aprobada", "presentada"]:
                 self.nivel = "Óptimo"
                 self.accion = "Analizar tendencias"
             else:
@@ -100,12 +101,14 @@ class Tablero(models.Model):
     class Meta:
         ordering = ['orden']
 
+
 class PerfilUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     responsable = models.CharField(max_length=100)
 
     def __str__(self):
         return f"{self.user.username} - {self.responsable}"
+
 
 class HistorialCambio(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -118,6 +121,7 @@ class HistorialCambio(models.Model):
     def __str__(self):
         return f"{self.usuario} cambió {self.campo} en '{self.indicador.indicador}'"
 
+
 class HistorialAvance(models.Model):
     tablero = models.ForeignKey('Tablero', on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -129,12 +133,12 @@ class HistorialAvance(models.Model):
     def __str__(self):
         return f"{self.tablero.indicador} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
 
+
 class BitacoraAcceso(models.Model):
     ACCION_CHOICES = [
         ('login', 'Inicio de sesión'),
         ('logout', 'Cierre de sesión'),
         ('password_change', 'Cambio de contraseña'),
-        # Podés agregar más tipos: 'failed_login', etc.
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
