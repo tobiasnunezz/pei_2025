@@ -1,0 +1,40 @@
+name: "🐛 Bug"
+description: "Reportar un error encontrado en el sistema"
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: pasos
+    attributes:
+      label: 🔄 Pasos para reproducir
+      description: Explica paso a paso cómo encontraste el bug
+      placeholder: |
+        1. Ir a /dashboard
+        2. Editar avance con observación vacía
+        3. Guardar
+        4. El sistema lanza error 500
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: ✅ Resultado esperado
+      placeholder: Ej. Debería mostrar un mensaje de validación en lugar de error
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: ❌ Resultado actual
+      placeholder: Ej. Error 500 en servidor
+    validations:
+      required: true
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: 📝 Notas adicionales
+      description: Capturas, logs, navegador, etc.
+

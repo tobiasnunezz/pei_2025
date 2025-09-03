@@ -1,0 +1,32 @@
+name: "💡 Mejora"
+description: "Sugerir o implementar una mejora al sistema PEI"
+title: "[Mejora]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: 📋 Descripción
+      description: Explica qué se debe mejorar o implementar
+      placeholder: Ej. Permitir subir varias evidencias en un mismo avance
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: ✅ Criterios de aceptación
+      description: Lista de condiciones que deben cumplirse para dar el issue por finalizado
+      placeholder: |
+        - El usuario puede adjuntar varios archivos
+        - El sistema guarda cada archivo asociado al avance
+        - La interfaz muestra correctamente los archivos
+    validations:
+      required: true
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: 📝 Notas adicionales
+      description: Links, capturas, referencias o aclaraciones extra
+
