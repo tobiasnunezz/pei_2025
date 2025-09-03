@@ -2,16 +2,6 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Tablero, PerfilUsuario
 
-CUANTITATIVOS = [
-    ("", "---------"),
-    ("0", "0%"),
-    ("10", "1 – 24%"),
-    ("25", "25 – 49%"),
-    ("50", "50 – 74%"),
-    ("75", "75 – 89%"),
-    ("90", ">= 90%"),
-]
-
 CUALITATIVOS = [
     ("no iniciado", "No Iniciado"),
     ("en proceso", "En proceso"),
@@ -21,11 +11,13 @@ CUALITATIVOS = [
 
 def obtener_campo_avance_por_tipo(tipo_meta):
     if tipo_meta == "porcentaje":
-        return forms.ChoiceField(
-            choices=CUANTITATIVOS,
-            widget=forms.Select(attrs={'class': 'form-select'}),
+        return forms.FloatField(
+            label="Avance (%)",
             required=True,
-            label="Avance"
+            min_value=0,
+            max_value=100,
+            widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
+            help_text='Ingresar el valor en porcentaje (ej: 42.5)'
         )
     elif tipo_meta == "texto":
         return forms.ChoiceField(
