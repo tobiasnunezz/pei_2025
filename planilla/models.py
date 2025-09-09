@@ -103,9 +103,20 @@ class Tablero(models.Model):
 
 
 class PerfilUsuario(models.Model):
+    class RolChoices(models.TextChoices):
+        EDITOR = "editor", "Editor"
+        LECTOR = "lector", "Lector"
+        ADMIN  = "admin",  "Admin"
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     responsable = models.CharField(max_length=100)
 
+    # ← NUEVO: opcional para poder crear el usuario sin romper
+    rol = models.CharField(
+        max_length=20,
+        choices=RolChoices.choices,
+        null=True, blank=True
+    )
     def __str__(self):
         return f"{self.user.username} - {self.responsable}"
 
