@@ -11,7 +11,7 @@
           <th>Fecha</th>
           <th>Avance</th>
           <th>Observación</th>
-          <th>Evidencia</th>
+          <th>Evidencia(s)</th>
           <th>Usuario</th>
         </tr>
       </thead>
@@ -22,8 +22,12 @@
           <td>{{ registro.avance }}</td>
           <td>{{ registro.observacion|default:"-" }}</td>
           <td>
-            {% if registro.evidencia %}
-              <a href="{{ registro.evidencia.url }}" target="_blank">📎 Ver archivo</a>
+            {% if registro.evidencias.all %}
+              <ul class="list-unstyled mb-0">
+              {% for evidencia in registro.evidencias.all %}
+                <li><a href="{{ evidencia.archivo.url }}" target="_blank">📎 Ver archivo</a></li>
+              {% endfor %}
+              </ul>
             {% else %}
               -
             {% endif %}

@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 🔐 Seguridad
 SECRET_KEY = 'django-insecure-$he5r((u1zv(8xtx^$ld1h^th2i62$t#wluw)ho!r%s%ws^=vs'
 DEBUG = True
-ALLOWED_HOSTS = ['192.168.1.214', 'localhost', '127.0.0.1', 'pei.conatel.gov.py']
+ALLOWED_HOSTS = ['192.168.1.214', 'localhost', '127.0.0.1', 'pei.conatel.gov.py', '192.168.1.215']
 
 # 📦 Aplicaciones instaladas
 INSTALLED_APPS = [
@@ -62,7 +62,7 @@ WSGI_APPLICATION = 'dashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dashboard',
+        'NAME': 'peidb',
         'USER': 'djangouser',
         'PASSWORD': 'uid2025',
         'HOST': 'localhost',

@@ -8,13 +8,14 @@ from django.utils.timezone import now
 from django.template.loader import get_template
 from django.utils.html import strip_tags
 from collections import defaultdict
+from django.core.files.base import ContentFile
 import csv
 import os
 from django.conf import settings
 
 from weasyprint import HTML, CSS
 
-from .models import Tablero, HistorialAvance, PerfilUsuario, BitacoraAcceso
+from .models import Tablero, HistorialAvance, PerfilUsuario, BitacoraAcceso, Evidencia, EvidenciaHistorica
 from .forms import AvanceForm, TableroCompletoForm, PerfilUsuarioForm, CrearUsuarioForm
 
 logger = logging.getLogger(__name__)
@@ -68,33 +69,42 @@ def editar_avance(request, id):
         form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
 
     if request.method == 'POST' and form.is_valid():
-        logger.debug("🟢 Entró en form.is_valid() para el usuario %s", usuario.username)
+        form.save() # Guarda los campos del Tablero (avance, observación, etc.)
 
-        nuevo_avance = form.cleaned_data.get('avance')
-        nueva_obs = form.cleaned_data.get('observacion')
-        nueva_evidencia = form.cleaned_data.get('evidencia')
+        # Crea el registro del historial
+        historial = HistorialAvance.objects.create(
+            tablero=tablero,
+            usuario=request.user,
+            avance=form.cleaned_data.get('avance') or '',
+            observacion=form.cleaned_data.get('observacion') or '',
+        )
 
-        logger.debug("📝 Datos limpios: avance=%s, observacion=%s, evidencia=%s", nuevo_avance, nueva_obs, nueva_evidencia)
-
-        form.save()
-        logger.debug("✅ form.save() ejecutado correctamente para tablero id=%s", tablero.id)
-
-        try:
-            HistorialAvance.objects.create(
-                tablero=tablero,
-                usuario=usuario,
-                avance=nuevo_avance or '',
-                observacion=nueva_obs or '',
-                evidencia=nueva_evidencia if nueva_evidencia else None
+        # Procesa y guarda cada uno de los archivos subidos
+        files = request.FILES.getlist('evidencias')
+        for f in files:
+            # 1. Guardar la copia de trabajo (en /media/evidencias/)
+            Evidencia.objects.create(historial_avance=historial, archivo=f)
+                
+            # 2. Guardar la copia histórica permanente (en /media/historial_evidencias/)
+            f.seek(0) # Volvemos al inicio del archivo para leerlo de nuevo
+            contenido_archivo = f.read()
+            EvidenciaHistorica.objects.create(
+                historial_avance=historial,
+                nombre_original=f.name,
+                archivo=ContentFile(contenido_archivo, name=f.name)
             )
-            logger.info(f"✅ Registro mensual guardado por: {usuario.username}")
-        except Exception as e:
-            logger.error("❌ Error al guardar en HistorialAvance: %s", str(e))
 
-        messages.success(request, 'Avance actualizado correctamente.')
-        return redirect('lista_tablero')
+        messages.success(request, 'Avance y evidencias actualizados correctamente.')
+        return redirect('editar_avance', id=tablero.id)
 
-    return render(request, 'planilla/editar_avance.html', {'form': form, 'tablero': tablero})
+    # Para mostrar las evidencias actuales, buscamos el último historial de este tablero
+    ultimo_historial = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha').first()
+
+    return render(request, 'planilla/editar_avance.html', {
+        'form': form,
+        'tablero': tablero,
+        'ultimo_historial': ultimo_historial
+    })
 
 @login_required
 def gestionar_perfiles(request):
@@ -171,12 +181,36 @@ def exportar_pdf(request):
 @login_required
 def ver_historial(request, id):
     tablero = get_object_or_404(Tablero, id=id)
-    historial_avances = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha')
+    historial_avances = HistorialAvance.objects.filter(tablero=tablero).prefetch_related('evidencias').order_by('-fecha')
     return render(request, 'planilla/ver_historial.html', {
         'tablero': tablero,
         'historial_avances': historial_avances
     })
 
+@login_required
+def eliminar_evidencia(request, evidencia_id):
+    """
+    Vista para eliminar un archivo de evidencia específico.
+    """
+    # Buscamos el objeto Evidencia o devolvemos un error 404 si no existe
+    evidencia = get_object_or_404(Evidencia, id=evidencia_id)
+    
+    # Guardamos el ID del tablero para poder redirigir al usuario
+    # a la página de edición correcta después de eliminar el archivo.
+    tablero_id = evidencia.historial_avance.tablero.id
+
+    try:
+        # Eliminamos el archivo físico del almacenamiento (media/evidencias/)
+        evidencia.archivo.delete(save=True)
+        # Eliminamos el registro de la base de datos
+        evidencia.delete()
+        messages.success(request, 'Archivo de evidencia eliminado correctamente.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar el archivo: {e}')
+        logger.error(f"Error al eliminar evidencia ID {evidencia_id}: {e}")
+
+    # Redirigimos al usuario de vuelta a la página de edición del avance
+    return redirect('editar_avance', id=tablero_id)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)

@@ -5,6 +5,7 @@ from . import views  # Importa las vistas
 urlpatterns = [
     path('', views.lista_tablero, name='lista_tablero'),  # Vista principal del tablero
     path('editar/<int:id>/', views.editar_avance, name='editar_avance'),
+    path('evidencia/eliminar/<int:evidencia_id>/', views.eliminar_evidencia, name='eliminar_evidencia'),
     path('admin/perfiles/', views.gestionar_perfiles, name='gestionar_perfiles'),
     path('panel/', views.admin_tablero, name='admin_tablero'),
     path('exportar/excel/', views.exportar_excel, name='exportar_excel'),

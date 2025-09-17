@@ -39,15 +39,15 @@ class AvanceForm(forms.ModelForm):
         required=False,
         label="Observación"
     )
-    evidencia = forms.FileField(
+    evidencias = forms.FileField(
         required=False,
-        label="Evidencia",
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+        label="Adjuntar evidencias (PDF, Word, Excel, Imágenes)",
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'multiple': ''})
     )
 
     class Meta:
         model = Tablero
-        fields = ['avance', 'observacion', 'evidencia', 'nivel', 'accion']
+        fields = ['avance', 'observacion', 'nivel', 'accion']
         widgets = {
             'nivel': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'accion': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),

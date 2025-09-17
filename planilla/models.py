@@ -26,7 +26,7 @@ class Tablero(models.Model):
     responsable = models.CharField(max_length=100, blank=True)
     orden = models.PositiveIntegerField(default=0)
     observacion = models.TextField(blank=True, null=True)
-    evidencia = models.FileField(upload_to='evidencias/', blank=True, null=True)
+    #evidencia = models.FileField(upload_to='evidencias/', blank=True, null=True)
 
     def calcular_nivel_y_accion(self):
         avance_raw = self.avance
@@ -138,12 +138,35 @@ class HistorialAvance(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     avance = models.CharField(max_length=255, blank=True, null=True)
     observacion = models.TextField(blank=True, null=True)
-    evidencia = models.FileField(upload_to='historial_evidencias/', blank=True, null=True)
+    #evidencia = models.FileField(upload_to='historial_evidencias/', blank=True, null=True)
     fecha = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.tablero.indicador} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
 
+class Evidencia(models.Model):
+    """
+    Modelo para almacenar cada archivo de evidencia asociado a un registro
+    de historial de avance.
+    """
+    historial_avance = models.ForeignKey(HistorialAvance, related_name='evidencias', on_delete=models.CASCADE)
+    archivo = models.FileField(upload_to='evidencias/')
+
+    def __str__(self):
+        # Devuelve el nombre del archivo para una mejor representación en el admin
+        return self.archivo.name
+
+class EvidenciaHistorica(models.Model):
+    """
+    Modelo para la evidencia 'histórica' o 'permanente'.
+    Estos archivos se guardan en /media/historial_evidencias/ y NO se eliminan.
+    """
+    historial_avance = models.ForeignKey(HistorialAvance, related_name='evidencias_historicas', on_delete=models.CASCADE)
+    archivo = models.FileField(upload_to='historial_evidencias/')
+    nombre_original = models.CharField(max_length=255, help_text="Nombre del archivo original subido por el usuario")
+
+    def __str__(self):
+        return self.nombre_original
 
 class BitacoraAcceso(models.Model):
     ACCION_CHOICES = [
