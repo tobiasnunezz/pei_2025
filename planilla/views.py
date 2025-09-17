@@ -9,10 +9,11 @@ from django.template.loader import get_template
 from django.utils.html import strip_tags
 from collections import defaultdict
 from django.core.files.base import ContentFile
+from django.utils import timezone
 import csv
 import os
 from django.conf import settings
-
+from django.db.models import Prefetch
 from weasyprint import HTML, CSS
 
 from .models import Tablero, HistorialAvance, PerfilUsuario, BitacoraAcceso, Evidencia, EvidenciaHistorica
@@ -30,11 +31,23 @@ ORDEN_EJES = [
 @login_required
 def lista_tablero(request):
     usuario = request.user
+    latest_historial_prefetch = Prefetch(
+        'historialavance_set',
+        queryset=HistorialAvance.objects.order_by('-fecha'),
+        to_attr='latest_historial_list'
+    )
     if usuario.is_staff or usuario.is_superuser:
-        tableros = list(Tablero.objects.all())
+        tableros = Tablero.objects.prefetch_related(latest_historial_prefetch).all()
     else:
         responsable = usuario.perfilusuario.responsable
-        tableros = list(Tablero.objects.filter(responsable=responsable))
+        tableros = Tablero.objects.filter(responsable=responsable).prefetch_related(latest_historial_prefetch)
+
+    # Adjuntamos la lista de evidencias a cada tablero para usarla en la plantilla
+    for t in tableros:
+        if t.latest_historial_list:
+            t.latest_evidence = t.latest_historial_list[0].evidencias.all()
+        else:
+            t.latest_evidence = []
 
     agrupado = defaultdict(lambda: defaultdict(list))
     for t in tableros:
@@ -68,42 +81,82 @@ def editar_avance(request, id):
             return redirect('lista_tablero')
         form = AvanceForm(request.POST or None, request.FILES or None, instance=tablero)
 
-    if request.method == 'POST' and form.is_valid():
-        form.save() # Guarda los campos del Tablero (avance, observación, etc.)
+    if request.method == 'POST':
+        form = AvanceForm(request.POST, request.FILES, instance=tablero)
+        if form.is_valid():
+            tablero_instance = form.save()
 
-        # Crea el registro del historial
-        historial = HistorialAvance.objects.create(
-            tablero=tablero,
-            usuario=request.user,
-            avance=form.cleaned_data.get('avance') or '',
-            observacion=form.cleaned_data.get('observacion') or '',
-        )
+            nuevos_archivos = request.FILES.getlist('evidencias')
+            ultimo_historial = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha').first()
 
-        # Procesa y guarda cada uno de los archivos subidos
-        files = request.FILES.getlist('evidencias')
-        for f in files:
-            # 1. Guardar la copia de trabajo (en /media/evidencias/)
-            Evidencia.objects.create(historial_avance=historial, archivo=f)
+            # --- LÓGICA MEJORADA ---
+
+            # CASO 1: El usuario subió nuevos archivos.
+            if nuevos_archivos:
+                # Creamos un nuevo registro de historial que contendrá TODO (lo viejo y lo nuevo).
+                nuevo_historial = HistorialAvance.objects.create(
+                    tablero=tablero_instance,
+                    usuario=request.user,
+                    avance=form.cleaned_data.get('avance'),
+                    observacion=form.cleaned_data.get('observacion')
+                )
+
+                # 1. Copiamos las referencias a los archivos antiguos al nuevo historial.
+                if ultimo_historial:
+                    for evidencia_antigua in ultimo_historial.evidencias.all():
+                        Evidencia.objects.create(
+                            historial_avance=nuevo_historial,
+                            archivo=evidencia_antigua.archivo
+                        )
+                        # También creamos la copia histórica para mantener la consistencia.
+                        EvidenciaHistorica.objects.create(
+                            historial_avance=nuevo_historial,
+                            archivo=evidencia_antigua.archivo,
+                            nombre_original=evidencia_antigua.archivo.name.split('/')[-1]
+                        )
+
+                # 2. Añadimos los archivos nuevos.
+                for f in nuevos_archivos:
+                    Evidencia.objects.create(historial_avance=nuevo_historial, archivo=f)
+                    f.seek(0) # Reiniciamos el puntero del archivo
+                    EvidenciaHistorica.objects.create(
+                        historial_avance=nuevo_historial,
+                        nombre_original=f.name,
+                        archivo=ContentFile(f.read(), name=f.name)
+                    )
                 
-            # 2. Guardar la copia histórica permanente (en /media/historial_evidencias/)
-            f.seek(0) # Volvemos al inicio del archivo para leerlo de nuevo
-            contenido_archivo = f.read()
-            EvidenciaHistorica.objects.create(
-                historial_avance=historial,
-                nombre_original=f.name,
-                archivo=ContentFile(contenido_archivo, name=f.name)
-            )
+                messages.success(request, 'Avance guardado y nuevos archivos añadidos.')
 
-        messages.success(request, 'Avance y evidencias actualizados correctamente.')
-        return redirect('editar_avance', id=tablero.id)
+            # CASO 2: El usuario NO subió archivos nuevos.
+            else:
+                # Si ya existe un historial, simplemente lo actualizamos.
+                if ultimo_historial:
+                    ultimo_historial.avance = form.cleaned_data.get('avance')
+                    ultimo_historial.observacion = form.cleaned_data.get('observacion')
+                    ultimo_historial.usuario = request.user
+                    ultimo_historial.fecha = timezone.now() # Actualizamos la fecha de la última modificación
+                    ultimo_historial.save()
+                    messages.success(request, 'Avance actualizado correctamente.')
+                # Si no había historial, lo creamos (primera vez que se guarda sin archivos).
+                else:
+                    HistorialAvance.objects.create(
+                        tablero=tablero_instance,
+                        usuario=request.user,
+                        avance=form.cleaned_data.get('avance'),
+                        observacion=form.cleaned_data.get('observacion')
+                    )
+                    messages.success(request, 'Avance guardado por primera vez.')
 
-    # Para mostrar las evidencias actuales, buscamos el último historial de este tablero
-    ultimo_historial = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha').first()
+            return redirect('editar_avance', id=tablero.id)
+    else:
+        form = AvanceForm(instance=tablero)
 
+    # La lógica para mostrar los archivos en la plantilla no cambia.
+    context_historial = HistorialAvance.objects.filter(tablero=tablero).order_by('-fecha').first()
     return render(request, 'planilla/editar_avance.html', {
         'form': form,
         'tablero': tablero,
-        'ultimo_historial': ultimo_historial
+        'ultimo_historial': context_historial
     })
 
 @login_required

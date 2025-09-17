@@ -32,14 +32,14 @@
   <h2 class="mb-4">📊 Tablero de Control</h2>
 
   {% if es_admin %}
-    <div class="mb-3 text-end">
-      <a href="{% url 'exportar_excel' %}" class="btn btn-outline-success btn-sm me-2">
-        📥 Exportar a Excel
-      </a>
-      <a href="{% url 'exportar_pdf' %}" class="btn btn-outline-danger btn-sm">
-        🧾 Exportar a PDF
-      </a>
-    </div>
+  <div class="mb-3 text-end">
+    <a href="{% url 'exportar_excel' %}" class="btn btn-outline-success btn-sm me-2">
+      📥 Exportar a Excel
+    </a>
+    <a href="{% url 'exportar_pdf' %}" class="btn btn-outline-danger btn-sm">
+      🧾 Exportar a PDF
+    </a>
+  </div>
   {% endif %}
 
   <div class="table-responsive">
@@ -59,70 +59,126 @@
           <th>EVIDENCIA</th> <!-- NUEVA COLUMNA -->
           <th>EDITAR</th>
           {% if es_admin %}
-            <th>HISTORIAL</th>
+          <th>HISTORIAL</th>
           {% endif %}
         </tr>
       </thead>
       <tbody>
         {% for eje, objetivos in agrupado.items %}
-          {% with contador=forloop.counter %}
-            {% for objetivo, items in objetivos.items %}
-              {% for item in items %}
-              <tr>
-                {% if forloop.first %}
-                  <td rowspan="{{ items|length }}">{{ forloop.parentloop.parentloop.counter }}</td>
-                  <td rowspan="{{ items|length }}"><strong>{{ eje }}</strong></td>
-                  <td rowspan="{{ items|length }}" class="fw-bold bg-light">{{ objetivo }}</td>
-                {% endif %}
-                <td>{{ forloop.counter }}. {{ item.indicador|default_if_none:'' }}</td>
-                <td>{{ item.meta_2025|default_if_none:"" }}</td>
-                <td>{{ item.avance|default_if_none:"" }}</td>
-                <td>
-                  {% if item.nivel == "No existe avance" %}
-                    <span class="badge bg-danger">No existe</span>
-                  {% elif item.nivel == "Bajo" %}
-                    <span class="badge" style="background-color: orange;">Bajo</span>
-                  {% elif item.nivel == "Aceptable" %}
-                    <span class="badge" style="background-color: gold; color: black;">Aceptable</span>
-                  {% elif item.nivel == "Medio" %}
-                    <span class="badge" style="background-color: yellow; color: black;">Medio</span>
-                  {% elif item.nivel == "Satisfactorio" %}
-                    <span class="badge" style="background-color: lightseagreen;">Satisfactorio</span>
-                  {% elif item.nivel == "Óptimo" %}
-                    <span class="badge bg-success">Óptimo</span>
-                  {% else %}
-                    {{ item.nivel|default_if_none:"" }}
-                  {% endif %}
-                </td>
-                <td>{{ item.accion|default_if_none:"" }}</td>
-                <td>{{ item.responsable|default_if_none:"" }}</td>
-                <td>{{ item.observacion|default_if_none:"" }}</td>
-                <td>
-                  {% if item.evidencia %}
-                    <a href="{{ item.evidencia.url }}" target="_blank">📎</a>
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-                <td>
-                  <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                </td>
-                {% if es_admin %}
-                <td>
-                  <a href="{% url 'ver_historial' item.id %}" class="btn btn-sm btn-outline-secondary">Historial</a>
-                </td>
-                {% endif %}
-              </tr>
-              {% endfor %}
-            {% endfor %}
-          {% endwith %}
+        {% with contador=forloop.counter %}
+        {% for objetivo, items in objetivos.items %}
+        {% for item in items %}
+        <tr>
+          {% if forloop.first %}
+          <td rowspan="{{ items|length }}">{{ forloop.parentloop.parentloop.counter }}</td>
+          <td rowspan="{{ items|length }}"><strong>{{ eje }}</strong></td>
+          <td rowspan="{{ items|length }}" class="fw-bold bg-light">{{ objetivo }}</td>
+          {% endif %}
+          <td>{{ forloop.counter }}. {{ item.indicador|default_if_none:'' }}</td>
+          <td>{{ item.meta_2025|default_if_none:"" }}</td>
+          <td>{{ item.avance|default_if_none:"" }}</td>
+          <td>
+            {% if item.nivel == "No existe avance" %}
+            <span class="badge bg-danger">No existe</span>
+            {% elif item.nivel == "Bajo" %}
+            <span class="badge" style="background-color: orange;">Bajo</span>
+            {% elif item.nivel == "Aceptable" %}
+            <span class="badge" style="background-color: gold; color: black;">Aceptable</span>
+            {% elif item.nivel == "Medio" %}
+            <span class="badge" style="background-color: yellow; color: black;">Medio</span>
+            {% elif item.nivel == "Satisfactorio" %}
+            <span class="badge" style="background-color: lightseagreen;">Satisfactorio</span>
+            {% elif item.nivel == "Óptimo" %}
+            <span class="badge bg-success">Óptimo</span>
+            {% else %}
+            {{ item.nivel|default_if_none:"" }}
+            {% endif %}
+          </td>
+          <td>{{ item.accion|default_if_none:"" }}</td>
+          <td>{{ item.responsable|default_if_none:"" }}</td>
+          <td>{{ item.observacion|default_if_none:"" }}</td>
+          <td>
+            {% if item.latest_evidence %}
+            <button type="button" class="btn btn-link p-0" data-bs-toggle="modal"
+              data-bs-target="#evidenciaModal-{{ item.id }}">
+              <span style="font-size: 1.5rem;">📎</span>
+            </button>
+            {% else %}
+            -
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'editar_avance' item.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+          </td>
+          {% if es_admin %}
+          <td>
+            <a href="{% url 'ver_historial' item.id %}" class="btn btn-sm btn-outline-secondary">Historial</a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+        {% endfor %}
+        {% endwith %}
         {% empty %}
-          <tr>
-            <td colspan="13">No hay datos disponibles.</td>
-          </tr>
+        <tr>
+          <td colspan="13">No hay datos disponibles.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% for eje, objetivos in agrupado.items %}
+{% for objetivo, items in objetivos.items %}
+{% for item in items %}
+{% if item.latest_evidence %}
+<div class="modal fade" id="evidenciaModal-{{ item.id }}" tabindex="-1"
+  aria-labelledby="evidenciaModalLabel-{{ item.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="evidenciaModalLabel-{{ item.id }}">Archivos de Evidencia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Indicador:</strong> {{ item.indicador }}</p>
+        <ul class="list-group">
+          {% for evidencia in item.latest_evidence %}
+          <li class="list-group-item">
+            <a href="{{ evidencia.archivo.url }}" class="evidence-download-link" download>
+              {{ evidencia.archivo.name|slice:"11:" }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" onclick="descargarTodo(this)">Descargar Todo</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+<script>
+  function descargarTodo(button) {
+    // Encuentra el modal padre del botón que fue presionado
+    const modal = button.closest('.modal');
+    // Encuentra todos los enlaces de descarga dentro de ESE modal
+    const links = modal.querySelectorAll('.evidence-download-link');
+
+    links.forEach((link, index) => {
+      // Usamos un pequeño retraso para que el navegador no bloquee las descargas múltiples
+      setTimeout(() => {
+        link.click();
+      }, index * 300); // 300 milisegundos entre cada descarga
+    });
+  }
+</script>
+
 {% endblock %}
