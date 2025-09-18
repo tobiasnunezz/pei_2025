@@ -7,52 +7,79 @@
     <div class="card-body">
       <p><strong>Indicador:</strong> {{ tablero.indicador }}</p>
 
-      <form method="post" enctype="multipart/form-data">
+      <form method="post" enctype="multipart/form-data" id="avanceForm">
         {% csrf_token %}
+        
+        <input type="hidden" name="evidencias_conservadas" id="evidencias_conservadas">
 
         <div class="mb-3">
           <label for="{{ form.avance.id_for_label }}" class="form-label">📈 Avance</label>
           {{ form.avance }}
-          {% if form.avance.errors %}
-          <div class="text-danger">{{ form.avance.errors }}</div>
-          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="{{ form.observacion.id_for_label }}" class="form-label">📝 Observación</label>
           {{ form.observacion }}
-          {% if form.observacion.errors %}
-          <div class="text-danger">{{ form.observacion.errors }}</div>
-          {% endif %}
         </div>
 
         <div class="mb-3">
           <label for="{{ form.evidencias.id_for_label }}" class="form-label">📎 {{ form.evidencias.label }}</label>
           {{ form.evidencias }}
-          {% if ultimo_historial and ultimo_historial.evidencias.all %}
+        </div>
+
+        {% if ultimo_historial and ultimo_historial.evidencias.all %}
           <div class="mt-2">
-            <small class="form-text text-muted">Archivos actuales:</small>
-            <ul class="list-group list-group-flush mt-1">
+            <small class="form-text text-muted">Archivos actuales (haz clic en la ✗ para marcar para eliminar):</small>
+            <ul class="list-group list-group-flush mt-1" id="lista-evidencias">
               {% for evidencia in ultimo_historial.evidencias.all %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <a href="{{ evidencia.archivo.url }}" target="_blank" title="{{ evidencia.archivo.name }}">
-                  {{ evidencia.archivo.name|truncatechars:60 }}
-                </a>
-                <a href="{% url 'eliminar_evidencia' evidencia.id %}" class="btn btn-sm btn-outline-danger"
-                  onclick="return confirm('¿Estás seguro de que deseas eliminar este archivo?');"
-                  title="Eliminar archivo">
-                  &times;
-                </a>
-              </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-evidencia-id="{{ evidencia.id }}">
+                  <a href="{{ evidencia.archivo.url }}" target="_blank">{{ evidencia.archivo.name|slice:"11:" }}</a>
+                  <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-evidencia" title="Marcar para eliminar">&times;</button>
+                </li>
               {% endfor %}
             </ul>
           </div>
-          {% endif %}
-        </div>
+        {% endif %}
+
         <button type="submit" class="btn btn-success">💾 Guardar</button>
-        <a href="{% url 'lista_tablero' %}" class="btn btn-secondary ms-2">↩️ Volver</a>
+        <a href="{% url 'lista_tablero' %}" class="btn btn-secondary ms-2">↩️ Cancelar</a>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('avanceForm');
+    const listaEvidencias = document.getElementById('lista-evidencias');
+    const inputConservadas = document.getElementById('evidencias_conservadas');
+
+    if (!form) return;
+
+    let idsAConservar = new Set();
+    if (listaEvidencias) {
+        listaEvidencias.querySelectorAll('li').forEach(item => {
+            idsAConservar.add(item.dataset.evidenciaId);
+        });
+    }
+
+    document.querySelectorAll('.btn-eliminar-evidencia').forEach(button => {
+        button.addEventListener('click', function() {
+            const item = this.closest('li');
+            const id = item.dataset.evidenciaId;
+            
+            idsAConservar.delete(id);
+            item.style.textDecoration = 'line-through';
+            item.style.opacity = '0.5';
+            this.disabled = true;
+        });
+    });
+
+    form.addEventListener('submit', function() {
+        if (inputConservadas) {
+            inputConservadas.value = Array.from(idsAConservar).join(',');
+        }
+    });
+});
+</script>
 {% endblock %}

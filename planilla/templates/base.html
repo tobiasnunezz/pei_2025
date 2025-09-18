@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,14 +12,18 @@
     <!-- Bootstrap CSS desde CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
 
     <!-- 🔐 Barra de usuario -->
     {% if user.is_authenticated %}
     <div class="bg-light py-2 px-3 text-end border-bottom">
         👋 Bienvenido, <strong>{{ user.username }}</strong>
-         <a href="{% url 'cambiar_contrasena' %}" class="btn btn-sm btn-outline-secondary ms-2">Cambiar contraseña</a>
-        | <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger ms-2">Cerrar sesión</a>
+        <a href="{% url 'cambiar_contrasena' %}" class="btn btn-sm btn-outline-secondary ms-2">Cambiar contraseña</a>
+        <form class="d-inline" action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger ms-2">Cerrar sesión</button>
+        </form>
     </div>
     {% if user.is_staff %}
     <div class="bg-warning-subtle py-2 px-3 text-end border-bottom">
@@ -45,9 +50,10 @@
     <!-- Footer -->
     <footer class="text-center py-3 mt-5" style="background-color: #f8f9fa;">
         <p class="mb-0 text-muted">&copy; 2025 Comisión Nacional de Telecomunicaciones - Paraguay</p>
-      </footer>    
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
